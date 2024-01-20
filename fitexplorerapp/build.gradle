@@ -1,0 +1,90 @@
+plugins {
+	id 'java'
+	id 'jacoco'
+	id 'org.springframework.boot' version '3.1.5'
+	id 'io.spring.dependency-management' version '1.1.3'
+}
+
+ext {
+	springBootVersion = '3.1.5.RELEASE'
+	springCloudServicesVersion = '2.1.0.RELEASE'
+	springCloudVersion = 'Greenwich.RELEASE'
+	swaggerVersion = '2.7.0'
+}
+
+group = 'com.vsoft'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+	implementation files('lib/fit.jar')
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-graphql'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+	implementation('org.springframework.boot:spring-boot-starter-actuator')
+	implementation('org.postgresql:postgresql')
+	testImplementation 'junit:junit:4.13.1'
+	compileOnly 'org.projectlombok:lombok'
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework:spring-webflux'
+	testImplementation 'org.springframework.graphql:spring-graphql-test'
+	implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.0'
+	implementation 'org.apache.commons:commons-dbcp2:2.10.0'
+	implementation(group: 'io.springfox', name: 'springfox-swagger2', version: swaggerVersion)
+	implementation(group: 'io.springfox', name: 'springfox-swagger-ui', version: swaggerVersion)
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'javax.validation:validation-api:2.0.0.Final'
+	implementation 'com.opencsv:opencsv:5.7.1'
+	implementation 'commons-validator:commons-validator:1.7'
+	implementation 'org.springframework:spring-context-support'
+	testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+	testImplementation 'org.junit.vintage:junit-vintage-engine'
+	testImplementation 'org.hamcrest:hamcrest-core'
+	implementation 'io.jsonwebtoken:jjwt:0.12.3'
+	implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
+
+
+}
+
+test {
+	finalizedBy jacocoTestReport
+	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = "0.8.9"
+	reportsDirectory = layout.buildDirectory.dir('customJacocoReportDir')
+}
+
+jacocoTestReport {
+	dependsOn test // tests are required to run before generating the report
+}
+
+task runAnotherMain(type: JavaExec) {
+	main = 'com.vsoft.fitexplorer.FitFileParser'
+	classpath = sourceSets.main.runtimeClasspath
+
+	args 'home/vladimir/Downloads/13123731108_ACTIVITY.fit'
+}

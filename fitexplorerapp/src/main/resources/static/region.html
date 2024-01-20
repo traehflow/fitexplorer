@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Map</title>
+    <!-- Include Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #map-container {
+            height: 60vh;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .charts-container {
+            display: flex;
+            //flex-direction: column;  /* Align children vertically */
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 10px;
+        }
+
+        .chart {
+            flex: 1;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map-container">
+    <div id="map"></div>
+</div>
+
+<div class="charts-container">
+    <p><canvas id="altitudeChart" class="chart"></canvas>
+    </p><p>
+    <canvas id="heartRateChart" class="chart"></canvas>
+</p>
+</div>
+
+<div id="length"></div>
+
+<script>
+    // Function to get query parameter from the URL
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // Get the 'id' parameter from the URL
+    const idParam = getQueryParam('id');
+
+    // Use the 'id' parameter to construct the API endpoint
+    const apiEndpoint = `/activities/val?id=${idParam}`;
+
+    // Initialize the map
+    const map = L.map('map').setView([42.68137698993087, 23.373442506417632], 13);
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Fetch data from the API
+    fetch(apiEndpoint)
+        .then(response => response.json())
+        .then(data => {
+            const fitUnitList = data.fitUnitList;
+
+            // Extract coordinates and timestamps from the data
+            const coordinates = fitUnitList.map(unit => [unit.latitude, unit.longitude]);
+            const timestamps = fitUnitList.map(unit => unit.timestamp);
+
+            // Calculate speeds, altitudes, and heart rates based on timestamps and data
+            const speeds = calculateParameter(fitUnitList, 'speed');
+            const altitudes = calculateParameter(fitUnitList, 'altitude');
+            const heartRates = calculateParameter(fitUnitList, 'heartRate');
+
+            const polyline = L.polyline(coordinates, {
+                color: 'blue',
+                weight: 5,
+                lineJoin: 'round'
+            }).addTo(map);
+
+            // Fit the map bounds to the polyline
+            map.fitBounds(polyline.getBounds());
+
+            const length = calculatePolylineLength(polyline);
+            document.getElementById('length').innerText = `Length of the polyline: ${length.toFixed(2)} meters`;
+
+            //createTimeDiagram('speedChart', 'Speed (km/h)', timestamps, speeds, 'green');
+            createTimeDiagram('altitudeChart', 'Altitude (m)', timestamps, altitudes, 'green');
+            createTimeDiagram('heartRateChart', 'Heart Rate (bpm)', timestamps, heartRates, 'green');
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+    // Function to calculate the length of a polyline
+    function calculatePolylineLength(polyline) {
+        const latLngs = polyline.getLatLngs();
+        let totalLength = 0;
+
+        for (let i = 1; i < latLngs.length; i++) {
+            const latLng1 = latLngs[i - 1];
+            const latLng2 = latLngs[i];
+            const distance = latLng1.distanceTo(latLng2); // Calculate distance between two points
+            totalLength += distance;
+        }
+
+        return totalLength;
+    }
+
+    // Function to calculate speeds, altitudes, or heart rates based on timestamps and data
+    function calculateParameter(data, parameter) {
+        return data.map(unit => unit[parameter]);
+    }
+
+    // Function to create time diagrams
+    function createTimeDiagram(containerId, label, timestamps, data, lineColor) {
+        const canvas = document.getElementById(containerId);
+        const ctx = canvas.getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: timestamps.map(timestamp => new Date(timestamp * 1000).toLocaleTimeString()),
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: lineColor,
+                    borderWidth: 1,
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        //type: 'linear',
+                        position: 'bottom',
+                        ticks: {
+                            callback: function (value, index, values) {
+                                // Format the timestamp to time
+                                return new Date(value * 1000).toLocaleTimeString();
+                            }
+                        }
+                    },
+                    y: {
+                        //beginAtZero: true
+                    }
+                },
+                onHover: function (event, chartElement) {
+                    const points = chart.getElementsAtXAxis(event);
+                    if (points.length > 0) {
+                        const index = points[0].index;
+                        const latLng = L.latLng(polyline.getLatLngs()[index]);
+                        map.panTo(latLng);
+                    }
+                }
+            }
+        });
+        canvas.onclick = function (event) {
+            const points = chart.getElementsAtEvent(event);
+            if (points.length > 0) {
+                const index = points[0].index;
+                const latLng = L.latLng(polyline.getLatLngs()[index]);
+                map.panTo(latLng);
+            }
+        };
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Map</title>
+    <!-- Include Leaflet CSS and JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <!-- Include Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #map-container {
+            height: 60vh;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .charts-container {
+            display: flex;
+            //flex-direction: column;  /* Align children vertically */
+            justify-content: space-between;
+            background-color: #fff;
+            padding: 10px;
+        }
+
+        .chart {
+            flex: 1;
+            margin-right: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="map-container">
+    <div id="map"></div>
+</div>
+
+<div class="charts-container">
+    <p><canvas id="altitudeChart" class="chart"></canvas>
+    </p><p>
+    <canvas id="heartRateChart" class="chart"></canvas>
+</p>
+</div>
+
+<div id="length"></div>
+
+<script>
+    // Function to get query parameter from the URL
+    function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+
+    // Get the 'id' parameter from the URL
+    const idParam = getQueryParam('id');
+
+    // Use the 'id' parameter to construct the API endpoint
+    const heatmapEndpoint = '/activities/heatmap'
+
+    // Initialize the map
+    const map = L.map('map').setView([42.68137698993087, 23.373442506417632], 13);
+
+    // Add OpenStreetMap tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+
+    fetch(heatmapEndpoint)
+    .then(response => response.json())
+    .then(data => {
+        const heatmapArray = Object.entries(data).map(([latLng, weight]) => {
+            const [lat, lng] = latLng.match(/\(([^,]+),([^)]+)\)/).slice(1).map(parseFloat);
+            return [lat, lng, weight];
+        });
+        const heat = L.heatLayer(heatmapArray, { minOpacity: 0.7, radius: 3, blur: 1.8, gradient:{0.4: 'blue', 1: 'lime'}}).addTo(map);
+            // Create a marker cluster group
+
+     })
+     .catch(error => console.error('Error fetching data:', error));
+
+
+    // Function to calculate speeds, altitudes, or heart rates based on timestamps and data
+    function calculateParameter(data, parameter) {
+        return data.map(unit => unit[parameter]);
+    }
+
+
+</script>
+
+</body>
+</html>
