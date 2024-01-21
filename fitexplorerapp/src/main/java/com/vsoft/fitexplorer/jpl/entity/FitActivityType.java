@@ -8,5 +8,7 @@ public enum FitActivityType {
     SWIMMING,
     ROWING,
     HIKING,
-    OTHER;
+    OTHER,
+    KAYAKING,
+    E_BIKING;
 }
