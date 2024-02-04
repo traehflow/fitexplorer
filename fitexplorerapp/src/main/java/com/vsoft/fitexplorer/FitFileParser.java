@@ -2,14 +2,8 @@ package com.vsoft.fitexplorer;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.garmin.fit.*;
 import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
-import com.vsoft.fitexplorer.jpl.entity.FitActivity;
-import com.vsoft.fitexplorer.jpl.entity.FitActivityType;
-import com.vsoft.fitexplorer.jpl.entity.FitUnit;
-import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
-import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
 import com.vsoft.fitexplorer.service.impl.ActivityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,9 +15,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 @PropertySource("classpath:application.yml")
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
@@ -76,11 +68,18 @@ public class FitFileParser {
             JsonNode element = elements.next();
             String activityId = element.get("activityId").asText();
             String activityName = element.get("activityName").asText();
+            try {
 
-            // Do something with activityId and activityName
-            System.out.println("Saving Activity ID: " + activityId + " Activity Name: " + activityName);
+                // Do something with activityId and activityName
+                System.out.println("Saving Activity ID: " + activityId + " Activity Name: " + activityName);
+                activityService.saveActivity(new FileInputStream("/home/vladimir/activities/" + activityId + "_ACTIVITY.fit"), userRepository, fitRepository, activityName, activityId);
 
-            activityService.saveActivity("/home/vladimir/activities/" + activityId + "_ACTIVITY.fit", userRepository, fitRepository, activityName);
+
+            } catch (IOException e) {
+                System.out.println("Warning! Cannot save Activity ID: " + activityId + " Activity Name: " + activityName);
+
+            }
+
         }
     }
 

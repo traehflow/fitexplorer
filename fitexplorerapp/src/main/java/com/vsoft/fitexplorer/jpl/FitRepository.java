@@ -18,6 +18,7 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class FitRepository {
@@ -88,6 +89,23 @@ public class FitRepository {
             return null;
         } else {
             return query.getResultList();
+        }
+    }
+
+    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+    @Transactional
+    public Set<String> listFitActivitiesIDs() {
+        TypedQuery<String> query = entityManager.createQuery(
+                "SELECT e.activityId FROM FitActivity e order by e.id", String.class
+        );
+
+
+
+        var result = query.getResultList();
+        if(result.isEmpty()) {
+            return null;
+        } else {
+            return Set.copyOf(query.getResultList());
         }
     }
 

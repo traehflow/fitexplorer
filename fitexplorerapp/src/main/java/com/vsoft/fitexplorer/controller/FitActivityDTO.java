@@ -23,7 +23,7 @@ public class FitActivityDTO {
     List<FitUnitDTO> fitUnitList;
     FitActivityType fitActivityType;
     //================================
-    Long activityId;
+    String activityId;
     String activityName;
     String description;
     Date startTimeLocal;

@@ -1,24 +1,23 @@
-package com.vsoft.fitexplorer.parsing.garmin;
+package com.vsoft.fitexplorer.service.impl;
 
 import com.garmin.fit.*;
 import com.vsoft.fitexplorer.jpl.entity.FitActivityType;
+import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
+import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
 import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class FitFileParserService {
-    public FitFileData parseFitFile(String fitFilePath) {
+    public FitFileData parseFitFile(InputStream fileInputStream) {
         List<Coordinate> track = new ArrayList<>();
         FitFileData fitFileData = new FitFileData();
-        final Sport[] sport = {Sport.RUNNING};
-
         try {
-            FileInputStream fileInputStream = new FileInputStream(fitFilePath);
-
             Decode decode = new Decode();
             MesgBroadcaster mesgBroadcaster = new MesgBroadcaster(decode);
             mesgBroadcaster.addListener(new SessionMesgListener() {
@@ -63,23 +62,16 @@ public class FitFileParserService {
                     }
                 }
             });
-
             mesgBroadcaster.addListener((RecordMesgListener) mesg -> {
                 Coordinate coordinate = extractCoordinates(mesg);
                 if (coordinate != null) {
                     track.add(coordinate);
                 }
             });
-
-
-
             decode.read(fileInputStream, mesgBroadcaster, mesgBroadcaster);
-
-
-        } catch (FitRuntimeException | IOException e) {
+        } catch (FitRuntimeException e) {
             e.printStackTrace();
         }
-
         fitFileData.setCoordinates(track);
         return fitFileData;
     }

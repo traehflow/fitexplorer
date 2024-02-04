@@ -28,7 +28,7 @@ public class FitActivity {
     List<FitUnit> fitUnitList;
     FitActivityType fitActivityType;
     //==================
-    Long activityId;
+    String activityId;
     String activityName;
     String description;
     Date startTimeLocal;
