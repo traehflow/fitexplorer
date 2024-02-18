@@ -77,23 +77,20 @@ public class FitFileParserService {
     }
 
     public Coordinate extractCoordinates(RecordMesg mesg) {
-        if (mesg.getPositionLat() != null && mesg.getPositionLong() != null) {
-            Double latitude = mesg.getPositionLat() == null? null : mesg.getPositionLat()  * (180.0 / Math.pow(2, 31));
-            Double longitude = mesg.getPositionLong() == null? null : mesg.getPositionLong() * (180.0 / Math.pow(2, 31));
-            Short heartRate = mesg.getHeartRate();
-            DateTime timestamp = mesg.getTimestamp();
-            Float altitude = mesg.getEnhancedAltitude();
-            Float distance = mesg.getDistance();
+        Double latitude = mesg.getPositionLat() == null? null : mesg.getPositionLat()  * (180.0 / Math.pow(2, 31));
+        Double longitude = mesg.getPositionLong() == null? null : mesg.getPositionLong() * (180.0 / Math.pow(2, 31));
+        Short heartRate = mesg.getHeartRate();
+        DateTime timestamp = mesg.getTimestamp();
+        Float altitude = mesg.getEnhancedAltitude();
+        Float distance = mesg.getDistance();
 
-            Byte temperature = mesg.getTemperature();
-
-
-            //System.out.println("(" + latitude + ", " + longitude + ": " + altitude + "m asl, " + heartRate + " time: " + timestamp);
+        Byte temperature = mesg.getTemperature();
 
 
-            return new Coordinate(null, latitude, longitude, altitude, heartRate, timestamp, distance, temperature);
-        }
-        return null;
+        //System.out.println("(" + latitude + ", " + longitude + ": " + altitude + "m asl, " + heartRate + " time: " + timestamp);
+
+
+        return new Coordinate(null, latitude, longitude, altitude, heartRate, timestamp, distance, temperature);
     }
 
     public FitActivityType convert(Sport activityType) {

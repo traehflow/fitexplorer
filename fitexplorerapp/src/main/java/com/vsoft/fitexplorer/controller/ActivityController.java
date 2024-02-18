@@ -40,14 +40,14 @@ public class ActivityController {
     }
 
     private List<FitActivityDTO> convertA(List<FitActivity> fitActivities) {
-        return  fitActivities.stream().map(x -> new FitActivityDTO(x.getId(), x.getStartTime() + 631065600, x.getOriginalFile(), List.of(), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed()))
+        return  fitActivities.stream().map(x -> new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(), List.of(), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed()))
                 .collect(Collectors.toList());
     }
 
     private FitActivityDTO convertA(FitActivity x) {
-        return new FitActivityDTO(x.getId(), x.getStartTime() + 631065600, x.getOriginalFile(),  convertAA(fitRepository.listFitActivityUnits(x)), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed());
+        return new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(),  convertAA(fitRepository.listFitActivityUnits(x)), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed());
     }
-
+//631065600
     private List<FitUnitDTO> convertAA(List<FitUnit> fitUnitList) {
         return fitUnitList.stream().map(x -> new FitUnitDTO(x.getLatitude(), x.getLongitude(), x.getAltitude(), x.getHeartRate(), x.getTimestamp() + 631065600, x.getDistance(), x.getTemperature())).collect(Collectors.toList());
     }
@@ -65,24 +65,7 @@ public class ActivityController {
     }
 
     @PostMapping("/sync")
-    public Map<String, GarminActivity> sync(AuthDetails jwtToken) throws JsonProcessingException {
+    public Map<String, GarminActivity> sync(AuthDetails jwtToken, @CookieValue("JSESSIONID") String cookie) throws JsonProcessingException {
         return syncService.sync(jwtToken);
-
-        /*
-        String url = "https://connect.garmin.com/activitylist-service/activities/search/activities?limit=1000&start=20&_=1706304901809";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("authority", "connect.garmin.com");
-        headers.set("accept", "application/json, text/javascript, **; q=0.01");
-        headers.set("accept-language", "en-US,en;q=0.9,bg-BG;q=0.8,bg;q=0.7");
-        headers.set("authorization", "Bearer " + jwtToken);
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-        String responseBody = responseEntity.getBody();
-        int statusCode = responseEntity.getStatusCodeValue();
-        System.out.println("Response Code: " + statusCode);
-        System.out.println("Response Body: " + responseBody);
-        */
     }
 }

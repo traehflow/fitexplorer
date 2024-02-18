@@ -72,9 +72,8 @@
     fetch(apiEndpoint)
         .then(response => response.json())
         .then(data => {
-            const fitUnitList = data.fitUnitList;
+            const fitUnitList = data.fitUnitList.filter(x => x.latitude != null && x.longitude != null);
 
-            // Extract coordinates and timestamps from the data
             const coordinates = fitUnitList.map(unit => [unit.latitude, unit.longitude]);
             const timestamps = fitUnitList.map(unit => unit.timestamp);
 

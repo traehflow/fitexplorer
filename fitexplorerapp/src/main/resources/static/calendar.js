@@ -8,13 +8,13 @@ document.addEventListener('DOMContentLoaded', function() {
   fetch('activities/list')
     .then(response => response.json())
     .then(data => {
-      // Transform your data to the format expected by FullCalendar
+
       const events = data.map(activity => ({
         id: activity.id,
         title: activity.activityName || 'Unknown Activity',
-        start: moment.unix(activity.startTime).toDate(),
-        end: moment.unix(activity.startTime + activity.duration).toDate(),
-        url: 'region.html?id=' + activity.id // You can link to the original file or provide more details here
+        start: moment.unix(activity.startTime / 1000).toDate(),
+        end: moment.unix(activity.startTime / 1000 + activity.duration).toDate(),
+        url: 'region.html?id=' + activity.id
       }));
 
       const { view, date } = parseUrlHash();

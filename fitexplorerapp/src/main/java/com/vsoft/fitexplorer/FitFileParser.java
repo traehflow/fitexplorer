@@ -69,8 +69,6 @@ public class FitFileParser {
             String activityId = element.get("activityId").asText();
             String activityName = element.get("activityName").asText();
             try {
-
-                // Do something with activityId and activityName
                 System.out.println("Saving Activity ID: " + activityId + " Activity Name: " + activityName);
                 activityService.saveActivity(new FileInputStream("/home/vladimir/activities/" + activityId + "_ACTIVITY.fit"), userRepository, fitRepository, activityName, activityId);
 

@@ -5,6 +5,7 @@ import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
 import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -35,28 +36,36 @@ public class ActivityService {
         FitActivity fitActivity = new FitActivity();
         fitActivity.setUserData(user);
         fitActivity.setStartTime(0L);
+
+        fitActivity.setFitActivityType(fitFileParserService.convert(fitFileData.getSport()));
+
+        fitActivity.setOriginalFile("/home/vladimir/activities/" + activityId);
+        fitActivity.setActivityName(activityName);
+        fitActivity.setActivityId(activityId);
+        fitActivity.setStartTimeLocal(fitFileData.getStartTimeLocal());
+        fitActivity.setDistance(fitFileData.getDistance());
+        fitActivity.setDuration(fitFileData.getDuration());
+        fitActivity.setElapsedDuration(fitFileData.getElapsedDuration());
+        fitActivity.setMovingDuration(fitFileData.getMovingDuration());
+        fitActivity.setElevationGain(fitFileData.getElevationGain());
+        fitActivity.setElevationLoss(fitFileData.getElevationLoss());
+        fitActivity.setAverageSpeed(fitFileData.getAverageSpeed());
+        fitActivity.setMaxSpeed(fitFileData.getMaxSpeed());
+        fitActivity.setStartTime(fitFileData.getStartTimeLocal() == null
+                ? null :fitFileData.getStartTimeLocal().getTime());
+
+        fitRepository.save(fitActivity);
+
+        // Keep in mind that some activities does not have coordinates.
         if(!track.isEmpty()) {
-            fitActivity.setFitActivityType(fitFileParserService.convert(fitFileData.getSport()));
-            fitActivity.setStartTime(track.get(0).getTimestamp().getTimestamp());
-            fitActivity.setOriginalFile("/home/vladimir/activities/" + activityId);
-            fitActivity.setActivityName(activityName);
-            fitActivity.setActivityId(activityId);
-            fitActivity.setStartTimeLocal(fitFileData.getStartTimeLocal());
-            fitActivity.setDistance(fitFileData.getDistance());
-            fitActivity.setDuration(fitFileData.getDuration());
-            fitActivity.setElapsedDuration(fitFileData.getElapsedDuration());
-            fitActivity.setMovingDuration(fitFileData.getMovingDuration());
-            fitActivity.setElevationGain(fitFileData.getElevationGain());
-            fitActivity.setElevationLoss(fitFileData.getElevationLoss());
-            fitActivity.setAverageSpeed(fitFileData.getAverageSpeed());
-            fitActivity.setMaxSpeed(fitFileData.getMaxSpeed());
-
-            fitRepository.save(fitActivity);
-
             track.stream().forEach(x -> {
                 FitUnit fitUnit = new FitUnit();
                 fitUnit.setFitActivity(fitActivity);
-                fitUnit.setTimestamp(x.getTimestamp().getTimestamp());
+                // I don't think that there are activity tracking without timestamps, but let it be safe.
+                if(x.getTimestamp() != null) {
+                    fitUnit.setTimestamp(x.getTimestamp().getTimestamp());
+                }
+                // Some activities may not have latitude and longitude, for example indoor swimming
                 fitUnit.setLatitude(x.getLatitude());
                 fitUnit.setLongitude(x.getLongitude());
                 fitUnit.setAltitude(x.getAltitude());
