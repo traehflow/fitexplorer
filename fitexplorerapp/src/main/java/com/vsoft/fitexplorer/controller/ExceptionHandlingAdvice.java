@@ -1,11 +1,9 @@
 package com.vsoft.fitexplorer.controller;
 
 import com.vsoft.fitexplorer.exception.InvalidInputDataException;
-import com.vsoft.fitexplorer.exception.MerchantNotFoundException;
 import com.vsoft.fitexplorer.dto.ErrorOutput;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -18,11 +16,11 @@ import java.util.stream.Collectors;
 @ControllerAdvice
 public class ExceptionHandlingAdvice {
 
-    @ExceptionHandler(MerchantNotFoundException.class)
-    public ResponseEntity<ErrorOutput> handleSpecificException(MerchantNotFoundException ex) {
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorOutput> failed(Exception e) {
         ErrorOutput errorOutput = new ErrorOutput();
-        errorOutput.setErrorMessage("Merchant not found");
-        return new ResponseEntity<>(errorOutput, HttpStatus.BAD_REQUEST);
+        errorOutput.setErrorMessage("Internal error!");
+        return new ResponseEntity<>(errorOutput, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(InvalidInputDataException.class)

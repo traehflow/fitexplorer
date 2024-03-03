@@ -39,6 +39,9 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationEntryPoint authenticationEntryPoint;
+
+    @Autowired
+    private JwtAccessDeniedHandler accessDeniedHandler;
     @Autowired
     private UserDetailsService userDetailsService;
     @Autowired
@@ -51,8 +54,20 @@ public class SecurityConfig {
                 .sessionManagement(x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests((authorizeHttpRequests) ->
                         authorizeHttpRequests
+                                .requestMatchers("/activities/**").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/swagger-ui.html").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/swagger-ui/*").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/calendar.js").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/region.html").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/cal.html").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/error").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+                                .requestMatchers("/favicon.ico").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
+
                                 .requestMatchers("/**").hasAnyRole(new String[]{Roles.MERCHANT, Roles.ADMIN})
-                                .requestMatchers(HttpMethod.POST, "/import/merchants").hasAnyRole(new String[]{Roles.ADMIN, Roles.MERCHANT})
+
+
+
+
                 )
                 .formLogin( x -> {
                     x.defaultSuccessUrl("/swagger-ui.html", true);
@@ -62,7 +77,8 @@ public class SecurityConfig {
                     x.failureUrl("/login.html?error=true");
                 })
                 .logout(x -> x.logoutUrl("/perform_logout"))
-                .exceptionHandling(h ->h.authenticationEntryPoint(authenticationEntryPoint))
+                .exceptionHandling(h ->h.authenticationEntryPoint(authenticationEntryPoint).
+                        accessDeniedHandler(accessDeniedHandler))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(withDefaults())
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)

@@ -15,3 +15,5 @@ logging:
     org.hibernate: DEBUG
     org.springframework.security: DEBUG
 secret: gdsfsfdvsdfvdfvrtgtregfrevgrtgvfrevgretvdfvdfvfdvdfvdfvtrvtrcdefcefdcefkjcneirfcuierhciurhcuier
+
+
