@@ -29,7 +29,7 @@ public class JwtUserDetailsService implements UserDetailsService {
     public void postConstruct() {
 /*        userRepository.save(new UserData("wolfheart@mail.com",
                 "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                Set.of("MERCHANT")));
+                Set.of("TRAINEE")));
         userRepository.save(new UserData("petersecada@merchant.com",
                 "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
                 Set.of("MERCHANT")));
@@ -43,9 +43,9 @@ public class JwtUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         var ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
-        var MERCHANT = new SimpleGrantedAuthority("ROLE_MERCHANT");
+        var TRAINEE = new SimpleGrantedAuthority("ROLE_TRAINEE");
         Map<String, SimpleGrantedAuthority> roleMap = Map.of("ADMIN",  new SimpleGrantedAuthority("ROLE_ADMIN"),
-                "MERCHANT", new SimpleGrantedAuthority("ROLE_MERCHANT"));
+                "TRAINEE", new SimpleGrantedAuthority("ROLE_TRAINEE"));
         UserData user = userRepository.loadUser(username);
         if(user != null) {
             return new User(
@@ -56,11 +56,11 @@ public class JwtUserDetailsService implements UserDetailsService {
         if ("wolfheart@mail.com".equals(username)) {
             return new User("wolfheart@mail.com",
                     "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                    List.of(MERCHANT));
+                    List.of(TRAINEE));
         } else if ("petersecada@merchant.com".equals(username)) {
             return new User("petersecada@merchant.com",
                     "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                    List.of(MERCHANT));
+                    List.of(TRAINEE));
         } else if ("admin".equals(username)) {
             return new User("admin",
                     "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",

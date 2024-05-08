@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiParam;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpEntity;
@@ -33,7 +34,7 @@ public class ActivityController {
     @Autowired
     private SyncService syncService;
 
-//    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+//    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/list")
     public List<FitActivityDTO> listActivities() {
         return  convertA(fitRepository.listFitActivities());
@@ -52,7 +53,7 @@ public class ActivityController {
         return fitUnitList.stream().map(x -> new FitUnitDTO(x.getLatitude(), x.getLongitude(), x.getAltitude(), x.getHeartRate(), x.getTimestamp() + 631065600, x.getDistance(), x.getTemperature())).collect(Collectors.toList());
     }
 
-  //  @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+  //  @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/val")
     @Transactional
     public FitActivityDTO showActivity( int id) {
@@ -65,7 +66,13 @@ public class ActivityController {
     }
 
     @PostMapping("/sync")
-    public Map<String, GarminActivity> sync(AuthDetails jwtToken, @CookieValue("JSESSIONID") String cookie) throws JsonProcessingException {
-        return syncService.sync(jwtToken);
+    public ResponseEntity<String> sync(AuthDetails jwtToken) throws JsonProcessingException {
+        syncTask(jwtToken);
+        return ResponseEntity.accepted().body("Long task has started processing in the background.");
+    }
+
+    @Async("threadPoolTaskExecutor")
+    public void syncTask(AuthDetails jwtToken) throws JsonProcessingException {
+        syncService.sync(jwtToken);
     }
 }

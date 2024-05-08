@@ -36,7 +36,7 @@ public class AuthenticationSuccessHandler implements org.springframework.securit
         Cookie cookie = new Cookie("auth-token", jwtToken);
         response.addCookie(cookie);
 
-        if(authentication.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(("ROLE_MERCHANT")))){
+        if(authentication.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(("ROLE_TRAINEE")))){
             //Successful authentication
             response.sendRedirect("/swagger-ui.html");
 

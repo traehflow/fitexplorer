@@ -16,6 +16,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.client.RequestCallback;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -42,6 +45,12 @@ public class SyncService {
 
     @Autowired
     ActivityService activityService;
+
+    @Async
+    public CompletableFuture<Map<String, GarminActivity>> asSync(AuthDetails authDetails) throws JsonProcessingException {
+        var result = sync(authDetails);
+        return new AsyncResult<>(result).completable();
+    }
 
     public Map<String, GarminActivity> sync(AuthDetails jwtToken) throws JsonProcessingException {
         List<GarminActivity> garminActivities = new ArrayList<GarminActivity>();

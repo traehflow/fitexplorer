@@ -19,7 +19,7 @@ public class ExceptionHandlingAdvice {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorOutput> failed(Exception e) {
         ErrorOutput errorOutput = new ErrorOutput();
-        errorOutput.setErrorMessage("Internal error!");
+        errorOutput.setErrorMessage("Internal error!: " + e.getMessage());
         return new ResponseEntity<>(errorOutput, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

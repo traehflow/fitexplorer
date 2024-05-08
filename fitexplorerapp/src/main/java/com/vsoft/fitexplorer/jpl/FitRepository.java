@@ -75,7 +75,7 @@ public class FitRepository {
         return map;
     }
 
-    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @Transactional
     public List<FitActivity> listFitActivities() {
         TypedQuery<FitActivity> query = entityManager.createQuery(
@@ -92,7 +92,7 @@ public class FitRepository {
         }
     }
 
-    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @Transactional
     public Set<String> listFitActivitiesIDs() {
         TypedQuery<String> query = entityManager.createQuery(
@@ -109,7 +109,7 @@ public class FitRepository {
         }
     }
 
-    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @Transactional
     public FitActivity listFitActivity(int id) {
         TypedQuery<FitActivity> query = entityManager.createQuery(
@@ -128,7 +128,7 @@ public class FitRepository {
         }
     }
 
-    @Secured(Roles.ROLE_PREFIX + Roles.MERCHANT)
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @Transactional
     public List<FitUnit> listFitActivityUnits(FitActivity fitActivity) {
         TypedQuery<FitUnit> query = entityManager.createQuery(
