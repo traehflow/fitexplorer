@@ -109,7 +109,7 @@ public class SyncService {
         ResponseEntity<String> responseEntity = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 
         String responseBody = responseEntity.getBody();
-        int statusCode = responseEntity.getStatusCodeValue();
+        int statusCode = responseEntity.getStatusCode().value();
         System.out.println("Response Code: " + statusCode);
         System.out.println("Response Body: " + responseBody);
 

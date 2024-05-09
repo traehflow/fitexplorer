@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
   function parseUrlHash() {
-      const hash = window.location.hash.substring(1); // Remove the '#' character
+      const hash = window.location.hash.substring(1);
       const [view, date] = hash.split('/');
       return { view, date };
     }
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
           center: 'title',
           right: 'month,agendaWeek,agendaDay'
         },
-        defaultView : view,
+        defaultView : view ? view : "month",
         defaultDate : date,
         viewRender: function(view, element) {
               // Check if the event was triggered by the back button
