@@ -152,7 +152,7 @@ public class ActivityController {
             }
         }
         fitFileData.setCoordinates(list);
-        activityService.saveActivity(fitFileData, userRepository, fitRepository,  fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+        activityService.saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
         return result.toString();
     }
 

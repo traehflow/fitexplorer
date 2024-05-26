@@ -27,10 +27,10 @@ public class ActivityService {
 
     public void saveActivity(InputStream fitFileStream, String activityName, String activityId) throws FileNotFoundException {
         var fitFileData = fitFileParserService.parseFitFile(fitFileStream);
-        saveActivity(fitFileData, userRepository, fitRepository, activityName, activityId);
+        saveActivity(fitFileData, activityName, activityId);
     }
 
-    public void saveActivity(FitFileData fitFileData, UserRepository userRepository, FitRepository fitRepository, String activityName, String activityId) throws FileNotFoundException {
+    public void saveActivity(FitFileData fitFileData, String activityName, String activityId) throws FileNotFoundException {
         List<Coordinate> track = fitFileData.getCoordinates();
         var user = userRepository.loadUser("wolfheart@mail.com");
         FitActivity fitActivity = new FitActivity();
