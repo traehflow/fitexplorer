@@ -1,12 +1,17 @@
 package com.vsoft.fitexplorer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.garmin.fit.DateTime;
 import com.vsoft.fitexplorer.Roles;
 import com.vsoft.fitexplorer.dto.AuthDetails;
 import com.vsoft.fitexplorer.jpl.FitRepository;
+import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
+import com.vsoft.fitexplorer.jpl.entity.FitActivityType;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
+import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
 import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
+import com.vsoft.fitexplorer.service.impl.ActivityService;
 import com.vsoft.fitexplorer.service.impl.GarminActivity;
 import com.vsoft.fitexplorer.service.impl.SyncService;
 import io.jenetics.jpx.GPX;
@@ -43,6 +48,11 @@ import java.util.stream.Collectors;
 public class ActivityController {
     @Autowired
     private FitRepository fitRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private ActivityService activityService;
 
     @Autowired
     private SyncService syncService;
@@ -93,57 +103,57 @@ public class ActivityController {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
-            GPX gpx = GPX.read(inputStream);
-
-            StringBuilder result = new StringBuilder();
-
-            FitActivity fitActivity = new FitActivity();
-            fitActivity.setActivityId(Integer.valueOf(gpx.hashCode()).toString());
-            var metadata = gpx.getMetadata();
-            if(metadata.isPresent()) {
-                fitActivity.setActivityName(metadata.get().getName().orElse(""));
-                fitActivity.setStartTime(metadata.get().getTime().get().toInstant().toEpochMilli());
-                fitActivity.setDescription(metadata.get().getDescription().orElse(""));
-                fitActivity.setStartTimeLocal(Date.from(metadata.get().getTime().get().toInstant()));
-            }
-            List<FitUnit> list = new ArrayList<>();
-
-            fitActivity.setFitUnitList(list);
-
-            for (WayPoint wp : gpx.getWayPoints()) {
-                result.append("Waypoint: ").append(wp).append("<br>\n");
-            }
-            for (Track track : gpx.getTracks()) {
-                fitActivity.setActivityName(String.join(", ", fitActivity.getActivityName(), track.getName().orElse(null)));
-                fitActivity.setDescription(String.join(", ", fitActivity.getDescription(), track.getDescription().orElse(null)));
-            }
-            fitRepository.save(fitActivity);
-
-            for (Track track : gpx.getTracks()) {
-                result.append("Track: ").append(track).append(", Track type: ").append(track.getType()).append("<br>\n");
-                for (TrackSegment segment : track.getSegments()) {
-                    for (WayPoint wp : segment.getPoints()) {
-                        FitUnit f = new FitUnit();
-                        f.setLatitude(wp.getLatitude().doubleValue());
-                        f.setLongitude(wp.getLongitude().doubleValue());
-                        f.setAltitude(wp.getElevation().get().floatValue());
-                        f.setTimestamp(wp.getTime().get().toInstant().toEpochMilli());
-                        f.setFitActivity(fitActivity);
-                        list.add(f);
-                        fitRepository.save(f);
-                        result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().orElse(null)).append("<br>\n");
-                    }
-                }
-            }
-            fitActivity.setFitUnitList(list);
-
-
-            return result.toString();
+            return  saveGpxFile(inputStream);
 
         } catch (IOException e) {
             e.printStackTrace();
             return "Error reading GPX file";
         }
+    }
+
+    private String saveGpxFile(InputStream inputStream) throws IOException {
+        GPX gpx = GPX.read(inputStream);
+        StringBuilder result = new StringBuilder();
+        FitFileData fitFileData = new FitFileData();
+        fitFileData.setActivityId((long) gpx.hashCode());
+        var metadata = gpx.getMetadata();
+        if(metadata.isPresent()) {
+            fitFileData.setActivityName(metadata.get().getName().orElse(""));
+            fitFileData.setDescription(metadata.get().getDescription().orElse(""));
+            fitFileData.setStartTimeLocal(Date.from(metadata.get().getTime().get().toInstant()));
+        }
+        List<Coordinate> list = new ArrayList<>();
+
+        fitFileData.setCoordinates(list);
+
+        for (WayPoint wp : gpx.getWayPoints()) {
+            result.append("Waypoint: ").append(wp).append("<br>\n");
+        }
+        for (Track track : gpx.getTracks()) {
+            fitFileData.setActivityName(String.join(", ", fitFileData.getActivityName(), track.getName().orElse(null)));
+            fitFileData.setDescription(String.join(", ", fitFileData.getDescription(), track.getDescription().orElse(null)));
+        }
+
+        for (Track track : gpx.getTracks()) {
+            result.append("Track: ").append(track).append(", Track type: ").append(track.getType()).append("<br>\n");
+            for (TrackSegment segment : track.getSegments()) {
+                for (WayPoint wp : segment.getPoints()) {
+                    Coordinate f = new Coordinate();
+
+                    f.setLatitude(wp.getLatitude().doubleValue());
+                    f.setLongitude(wp.getLongitude().doubleValue());
+                    f.setAltitude(wp.getElevation().get().floatValue());
+                    f.setTimestamp(new DateTime(wp.getTime().get().toInstant().toEpochMilli()));
+
+                    list.add(f);
+
+                    result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().orElse(null)).append("<br>\n");
+                }
+            }
+        }
+        fitFileData.setCoordinates(list);
+        activityService.saveActivity(fitFileData, userRepository, fitRepository,  fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+        return result.toString();
     }
 
     @Async("threadPoolTaskExecutor")

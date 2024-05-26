@@ -70,7 +70,7 @@ public class FitFileParser {
             String activityName = element.get("activityName").asText();
             try {
                 System.out.println("Saving Activity ID: " + activityId + " Activity Name: " + activityName);
-                activityService.saveActivity(new FileInputStream("/home/vladimir/activities/" + activityId + "_ACTIVITY.fit"), userRepository, fitRepository, activityName, activityId);
+                activityService.saveActivity(new FileInputStream("/home/vladimir/activities/" + activityId + "_ACTIVITY.fit"), activityName, activityId);
 
 
             } catch (IOException e) {

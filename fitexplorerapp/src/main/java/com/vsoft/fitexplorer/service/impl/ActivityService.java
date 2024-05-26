@@ -6,11 +6,9 @@ import com.vsoft.fitexplorer.jpl.entity.FitActivity;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
 import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
 import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
@@ -21,16 +19,13 @@ public class ActivityService {
     private UserRepository userRepository;
 
     @Autowired
-    FitRepository fitRepository;
+    private FitRepository fitRepository;
 
     @Autowired
     private FitFileParserService fitFileParserService;
 
-    public void saveActivity(InputStream fitFileStream, String activityName, String activityId) throws FileNotFoundException {
-        this.saveActivity(fitFileStream, this.userRepository, this.fitRepository, activityName, activityId);
-    }
 
-    public void saveActivity(InputStream fitFileStream, UserRepository userRepository, FitRepository fitRepository, String activityName, String activityId) throws FileNotFoundException {
+    public void saveActivity(InputStream fitFileStream, String activityName, String activityId) throws FileNotFoundException {
         var fitFileData = fitFileParserService.parseFitFile(fitFileStream);
         saveActivity(fitFileData, userRepository, fitRepository, activityName, activityId);
     }

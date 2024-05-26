@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
+<html>
 <body>
+
+<h2>GPX File Upload</h2>
+<form action="http://localhost:8080/activities/upload" method="post" enctype="multipart/form-data">
+    Select GPX file:
+    <input type="file" name="file" id="file">
+    <input type="submit" value="Upload GPX" name="submit">
+</form>
 
 </body>
 </html>

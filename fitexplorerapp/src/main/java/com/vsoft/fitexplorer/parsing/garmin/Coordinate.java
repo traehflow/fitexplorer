@@ -4,19 +4,21 @@ import com.garmin.fit.DateTime;
 import com.vsoft.fitexplorer.jpl.entity.FitActivityType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 
 @Data
 @ToString
+@NoArgsConstructor
 @AllArgsConstructor
 public class Coordinate {
-    private final FitActivityType fitActivityType;
-    private final Double latitude;
-    private final Double longitude;
-    private final Float altitude;
-    private final Short heartRate;
-    private final DateTime timestamp;
-    private final Float distance;
-    private final Byte temperature;
+    private FitActivityType fitActivityType;
+    private Double latitude;
+    private Double longitude;
+    private Float altitude;
+    private Short heartRate;
+    private DateTime timestamp;
+    private Float distance;
+    private Byte temperature;
 
 }
