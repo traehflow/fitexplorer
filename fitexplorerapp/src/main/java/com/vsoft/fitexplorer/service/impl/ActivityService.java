@@ -5,6 +5,7 @@ import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
 import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
+import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,10 @@ public class ActivityService {
 
     public void saveActivity(InputStream fitFileStream, UserRepository userRepository, FitRepository fitRepository, String activityName, String activityId) throws FileNotFoundException {
         var fitFileData = fitFileParserService.parseFitFile(fitFileStream);
+        saveActivity(fitFileData, userRepository, fitRepository, activityName, activityId);
+    }
+
+    public void saveActivity(FitFileData fitFileData, UserRepository userRepository, FitRepository fitRepository, String activityName, String activityId) throws FileNotFoundException {
         List<Coordinate> track = fitFileData.getCoordinates();
         var user = userRepository.loadUser("wolfheart@mail.com");
         FitActivity fitActivity = new FitActivity();
@@ -52,17 +57,17 @@ public class ActivityService {
         fitActivity.setAverageSpeed(fitFileData.getAverageSpeed());
         fitActivity.setMaxSpeed(fitFileData.getMaxSpeed());
         fitActivity.setStartTime(fitFileData.getStartTimeLocal() == null
-                ? null :fitFileData.getStartTimeLocal().getTime());
+                ? null : fitFileData.getStartTimeLocal().getTime());
 
         fitRepository.save(fitActivity);
 
         // Keep in mind that some activities does not have coordinates.
-        if(!track.isEmpty()) {
+        if (!track.isEmpty()) {
             track.stream().forEach(x -> {
                 FitUnit fitUnit = new FitUnit();
                 fitUnit.setFitActivity(fitActivity);
                 // I don't think that there are activity tracking without timestamps, but let it be safe.
-                if(x.getTimestamp() != null) {
+                if (x.getTimestamp() != null) {
                     fitUnit.setTimestamp(x.getTimestamp().getTimestamp());
                 }
                 // Some activities may not have latitude and longitude, for example indoor swimming
