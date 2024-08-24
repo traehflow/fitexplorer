@@ -36,8 +36,9 @@ import java.util.zip.ZipInputStream;
 @Service
 public class SyncService {
     static ObjectMapper objectMapper = new ObjectMapper();
+
     static {
-        objectMapper.configure(DeserializationFeature. FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Autowired
@@ -61,9 +62,9 @@ public class SyncService {
         List<GarminActivity> current;
         do {
             current = extractActivities(jwtToken, count, start);
-            map.putAll(current.stream().collect(Collectors.toMap(GarminActivity::getActivityId, x -> x, (x,y) -> x)));
+            map.putAll(current.stream().collect(Collectors.toMap(GarminActivity::getActivityId, x -> x, (x, y) -> x)));
             start += count;
-        } while(current.size() == count);
+        } while (current.size() == count);
 
         Set<String> persistedIds = fitRepository.listFitActivitiesIDs();
         persistedIds.stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
@@ -89,13 +90,13 @@ public class SyncService {
         headers.set("di-backend", "connectapi.garmin.com");
         headers.set("Authorization", "Bearer " + jwtToken.getJwtToken());
         headers.set("nk", "NT");
-        headers.set("sec-ch-ua","\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"");
+        headers.set("sec-ch-ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"");
         headers.set("sec-ch-ua-mobile", "?0");
         headers.set("sec-ch-ua-platform", "\"Linux\"");
         headers.set("sec-fetch-dest", "empty");
         headers.set("sec-fetch-mode", "cors");
         headers.set("sec-fetch-site", "same-origin");
-        headers.set("user-agent","Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        headers.set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
         headers.set("x-app-ver", "4.74.2.4");
         headers.set("x-lang", "en-US");
         headers.set("x-requested-with", "XMLHttpRequest");
@@ -113,7 +114,8 @@ public class SyncService {
         System.out.println("Response Code: " + statusCode);
         System.out.println("Response Body: " + responseBody);
 
-        List<GarminActivity> activities = objectMapper.readValue(responseBody,  new TypeReference<List<GarminActivity>>(){});
+        List<GarminActivity> activities = objectMapper.readValue(responseBody, new TypeReference<List<GarminActivity>>() {
+        });
         return activities;
     }
 
@@ -135,15 +137,10 @@ public class SyncService {
         ZipInputStream zis = new ZipInputStream(responseEntity.getBody().getInputStream());
         ZipEntry entry;
         String result = "";
-        while ((entry = zis.getNextEntry()) != null)
-        {
+        while ((entry = zis.getNextEntry()) != null) {
             activityService.saveActivity(zis, activityName, activityId);
-
             result += "entry: " + entry.getName() + ", " + entry.getSize();
-
-
-
-        }   
+        }
         return result;
     }
 

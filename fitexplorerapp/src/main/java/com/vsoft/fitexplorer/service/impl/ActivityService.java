@@ -1,16 +1,24 @@
 package com.vsoft.fitexplorer.service.impl;
 
+import com.garmin.fit.DateTime;
 import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
 import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
 import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
+import io.jenetics.jpx.GPX;
+import io.jenetics.jpx.Track;
+import io.jenetics.jpx.TrackSegment;
+import io.jenetics.jpx.WayPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -76,5 +84,50 @@ public class ActivityService {
                 fitRepository.save(fitUnit);
             });
         }
+    }
+
+    public String saveGpxFile(InputStream inputStream) throws IOException {
+        GPX gpx = GPX.read(inputStream);
+        StringBuilder result = new StringBuilder();
+        FitFileData fitFileData = new FitFileData();
+        fitFileData.setActivityId((long) gpx.hashCode());
+        var metadata = gpx.getMetadata();
+        if(metadata.isPresent()) {
+            fitFileData.setActivityName(metadata.get().getName().orElse(""));
+            fitFileData.setDescription(metadata.get().getDescription().orElse(""));
+            fitFileData.setStartTimeLocal(Date.from(metadata.get().getTime().get().toInstant()));
+        }
+        List<Coordinate> list = new ArrayList<>();
+
+        fitFileData.setCoordinates(list);
+
+        for (WayPoint wp : gpx.getWayPoints()) {
+            result.append("Waypoint: ").append(wp).append("<br>\n");
+        }
+        for (Track track : gpx.getTracks()) {
+            fitFileData.setActivityName(String.join(", ", fitFileData.getActivityName(), track.getName().orElse(null)));
+            fitFileData.setDescription(String.join(", ", fitFileData.getDescription(), track.getDescription().orElse(null)));
+        }
+
+        for (Track track : gpx.getTracks()) {
+            result.append("Track: ").append(track).append(", Track type: ").append(track.getType()).append("<br>\n");
+            for (TrackSegment segment : track.getSegments()) {
+                for (WayPoint wp : segment.getPoints()) {
+                    Coordinate f = new Coordinate();
+
+                    f.setLatitude(wp.getLatitude().doubleValue());
+                    f.setLongitude(wp.getLongitude().doubleValue());
+                    f.setAltitude(wp.getElevation().get().floatValue());
+                    f.setTimestamp(new DateTime(wp.getTime().get().toInstant().toEpochMilli()));
+
+                    list.add(f);
+
+                    result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().orElse(null)).append("<br>\n");
+                }
+            }
+        }
+        fitFileData.setCoordinates(list);
+        saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+        return result.toString();
     }
 }
