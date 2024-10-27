@@ -12,9 +12,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -22,6 +25,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 
 @RestController
@@ -75,7 +80,7 @@ public class ActivityController {
         return ResponseEntity.accepted().body("Long task has started processing in the background.");
     }
 
-    @PostMapping("upload")
+    @PostMapping("uploadGpx")
     @Operation(summary = "Upload GPX file", description = "Uploads a GPX file and parses its content")
     public String uploadGpxFile(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
@@ -86,7 +91,21 @@ public class ActivityController {
             return activityService.saveGpxFile(inputStream);
         } catch (IOException e) {
             e.printStackTrace();
-            return "Error reading GPX file";
+            throw new HttpClientErrorException(BAD_REQUEST, "Error reading GPX file");
+        }
+    }
+
+    @PostMapping("uploadTcx")
+    @Operation(summary = "Upload TCX file", description = "Uploads a GPX file and parses its content")
+    public String uploadTcxFile(@RequestParam("file2") MultipartFile file) throws IOException {
+        if (file.isEmpty()) {
+            return "File is empty";
+        }
+        try (InputStream inputStream = file.getInputStream()) {
+            return  activityService.saveTcxFile(inputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new HttpClientErrorException(BAD_REQUEST, "Error reading GPX file");
         }
     }
 

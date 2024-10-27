@@ -1,6 +1,10 @@
 package com.vsoft.fitexplorer.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.garmin.fit.DateTime;
+import com.vsoft.fitexplorer.importTypes.tcx.Lap;
+import com.vsoft.fitexplorer.importTypes.tcx.TrainingCenterDatabase;
 import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
@@ -11,6 +15,7 @@ import io.jenetics.jpx.GPX;
 import io.jenetics.jpx.Track;
 import io.jenetics.jpx.TrackSegment;
 import io.jenetics.jpx.WayPoint;
+import jakarta.xml.bind.JAXBContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +75,7 @@ public class ActivityService {
                 FitUnit fitUnit = new FitUnit();
                 fitUnit.setFitActivity(fitActivity);
                 // I don't think that there are activity tracking without timestamps, but let it be safe.
-                if (x.getTimestamp() != null) {
+                    if (x.getTimestamp() != null) {
                     fitUnit.setTimestamp(x.getTimestamp().getTimestamp());
                 }
                 // Some activities may not have latitude and longitude, for example indoor swimming
@@ -129,5 +134,66 @@ public class ActivityService {
         fitFileData.setCoordinates(list);
         saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
         return result.toString();
+    }
+
+    public String saveTcxFile(InputStream inputStream) throws IOException {
+
+        JAXBContext jaxbContext = null;
+
+
+
+            XmlMapper xmlMapper = new XmlMapper();
+            xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            TrainingCenterDatabase db = xmlMapper.readValue(inputStream, TrainingCenterDatabase.class);
+
+
+            //GPX gpx = GPX.read(inputStream);
+            StringBuilder result = new StringBuilder();
+            FitFileData fitFileData = new FitFileData();
+            //fitFileData.setActivityId((long) gpx.hashCode());
+
+            if (!db.getActivities().isEmpty()) {
+                var metadata = db.getActivities().get(0);
+                fitFileData.setActivityName(metadata.getId());
+                fitFileData.setDescription(metadata.getNotes());
+                List<Coordinate> list = new ArrayList<>();
+                fitFileData.setStartTimeLocal(Date.from(metadata.getLap().get(0).getStartTime().toGregorianCalendar().toInstant()));
+
+                boolean firstLap = true;
+                for (Lap l : metadata.getLap()) {
+                    boolean firstTrack = true;
+                    for (var wp : l.getTrack()) {
+                        //result.append("Waypoint: ").append(wp).append("<br>\n");
+                        //result.append("Track: ").append(metadata).append(", Track type: ").append(metadata.getSport()).append("<br>\n");
+
+                        Coordinate f = new Coordinate();
+
+                        if(wp.getPosition() != null) {
+                            f.setLatitude(wp.getPosition().getLatitudeDegrees());
+                            f.setLongitude(wp.getPosition().getLongitudeDegrees());
+                        } else {
+                            System.out.println(wp);
+                        }
+                        f.setAltitude(wp.getAltitudeMeters().floatValue());
+                        f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
+
+                        list.add(f);
+
+                        //result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().toGregorianCalendar().toInstant().toEpochMilli()).append("<br>\n");
+                        firstTrack = false;
+                    }
+                    firstLap = false;
+
+                    fitFileData.setCoordinates(list);
+                }
+
+
+
+                fitFileData.setCoordinates(list);
+
+
+                saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+            }
+            return result.toString();
     }
 }

@@ -28,7 +28,7 @@ public class FitRepository {
 
     @Transactional
     public FitUnit save(FitUnit fitUnit) {
-        entityManager.persist(fitUnit);
+        entityManager.merge(fitUnit);
         return fitUnit;
     }
 
