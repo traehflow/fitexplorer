@@ -184,7 +184,6 @@ public class ActivityService {
                     }
                     firstLap = false;
 
-                    fitFileData.setCoordinates(list);
                 }
 
 
