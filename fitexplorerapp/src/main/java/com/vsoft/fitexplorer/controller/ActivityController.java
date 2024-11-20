@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -97,12 +98,13 @@ public class ActivityController {
 
     @PostMapping("uploadTcx")
     @Operation(summary = "Upload TCX file", description = "Uploads a GPX file and parses its content")
-    public String uploadTcxFile(@RequestParam("file2") MultipartFile file) throws IOException {
+    public ResponseEntity uploadTcxFile(@RequestParam("file2") MultipartFile file) throws IOException {
         if (file.isEmpty()) {
-            return "File is empty";
+            return new ResponseEntity<String>("File is empty", BAD_REQUEST);
         }
         try (InputStream inputStream = file.getInputStream()) {
-            return  activityService.saveTcxFile(inputStream);
+            activityService.saveTcxFile(inputStream);
+            return new ResponseEntity(HttpStatus.OK);
         } catch (IOException e) {
             e.printStackTrace();
             throw new HttpClientErrorException(BAD_REQUEST, "Error reading GPX file");

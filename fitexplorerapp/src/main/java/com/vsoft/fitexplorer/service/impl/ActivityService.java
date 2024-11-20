@@ -15,7 +15,6 @@ import io.jenetics.jpx.GPX;
 import io.jenetics.jpx.Track;
 import io.jenetics.jpx.TrackSegment;
 import io.jenetics.jpx.WayPoint;
-import jakarta.xml.bind.JAXBContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -136,63 +135,38 @@ public class ActivityService {
         return result.toString();
     }
 
-    public String saveTcxFile(InputStream inputStream) throws IOException {
+    public void saveTcxFile(InputStream inputStream) throws IOException {
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        TrainingCenterDatabase db = xmlMapper.readValue(inputStream, TrainingCenterDatabase.class);
 
-        JAXBContext jaxbContext = null;
+        FitFileData fitFileData = new FitFileData();
+        if (!db.getActivities().isEmpty()) {
+            var metadata = db.getActivities().get(0);
+            fitFileData.setActivityName(metadata.getId());
+            fitFileData.setDescription(metadata.getNotes());
+            List<Coordinate> list = new ArrayList<>();
+            fitFileData.setStartTimeLocal(Date.from(metadata.getLap().get(0).getStartTime().toGregorianCalendar().toInstant()));
+            for (Lap l : metadata.getLap()) {
+                for (var wp : l.getTrack()) {
+                    Coordinate f = new Coordinate();
 
-
-
-            XmlMapper xmlMapper = new XmlMapper();
-            xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            TrainingCenterDatabase db = xmlMapper.readValue(inputStream, TrainingCenterDatabase.class);
-
-
-            //GPX gpx = GPX.read(inputStream);
-            StringBuilder result = new StringBuilder();
-            FitFileData fitFileData = new FitFileData();
-            //fitFileData.setActivityId((long) gpx.hashCode());
-
-            if (!db.getActivities().isEmpty()) {
-                var metadata = db.getActivities().get(0);
-                fitFileData.setActivityName(metadata.getId());
-                fitFileData.setDescription(metadata.getNotes());
-                List<Coordinate> list = new ArrayList<>();
-                fitFileData.setStartTimeLocal(Date.from(metadata.getLap().get(0).getStartTime().toGregorianCalendar().toInstant()));
-
-                boolean firstLap = true;
-                for (Lap l : metadata.getLap()) {
-                    boolean firstTrack = true;
-                    for (var wp : l.getTrack()) {
-                        //result.append("Waypoint: ").append(wp).append("<br>\n");
-                        //result.append("Track: ").append(metadata).append(", Track type: ").append(metadata.getSport()).append("<br>\n");
-
-                        Coordinate f = new Coordinate();
-
-                        if(wp.getPosition() != null) {
-                            f.setLatitude(wp.getPosition().getLatitudeDegrees());
-                            f.setLongitude(wp.getPosition().getLongitudeDegrees());
-                        } else {
-                            System.out.println(wp);
-                        }
-                        f.setAltitude(wp.getAltitudeMeters().floatValue());
-                        f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
-
-                        list.add(f);
-
-                        //result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().toGregorianCalendar().toInstant().toEpochMilli()).append("<br>\n");
-                        firstTrack = false;
+                    if (wp.getPosition() != null) {
+                        f.setLatitude(wp.getPosition().getLatitudeDegrees());
+                        f.setLongitude(wp.getPosition().getLongitudeDegrees());
+                    } else {
+                        // Some activities may contain points without coordinates \
+                        // (gps is not turned on while doing the activity)
+                        System.out.println(wp);
                     }
-                    firstLap = false;
-
+                    f.setAltitude(wp.getAltitudeMeters().floatValue());
+                    f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
+                    list.add(f);
                 }
-
-
-
-                fitFileData.setCoordinates(list);
-
-
-                saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
             }
-            return result.toString();
+
+            fitFileData.setCoordinates(list);
+            saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+        }
     }
 }
