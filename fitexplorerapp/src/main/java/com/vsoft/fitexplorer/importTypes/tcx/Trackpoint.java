@@ -1,6 +1,8 @@
 package com.vsoft.fitexplorer.importTypes.tcx;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.Getter;
+import lombok.ToString;
 
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -8,39 +10,93 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 
 
+@Getter
+@ToString
 public class Trackpoint {
 
-    @JacksonXmlProperty(localName = "Time")
-    @XmlSchemaType(name = "dateTime")
-    protected XMLGregorianCalendar time;
-    @JacksonXmlProperty(localName = "Position")
-    protected Position position;
-    @JacksonXmlProperty(localName = "AltitudeMeters")
-    protected Double altitudeMeters;
-    @JacksonXmlProperty(localName = "DistanceMeters")
-    protected Double distanceMeters;
-    @JacksonXmlProperty(localName = "HeartRateBpm")
-    protected HeartRateInBeatsPerMinute heartRateBpm;
-    @JacksonXmlProperty(localName = "Cadence")
-    @XmlSchemaType(name = "unsignedByte")
-    protected Short cadence;
-    @JacksonXmlProperty(localName = "SensorState")
-    @XmlSchemaType(name = "token")
-    protected SensorState sensorState;
-    @JacksonXmlProperty(localName = "Extensions")
-    protected Extensions extensions;
-
     /**
-     * Gets the value of the time property.
-     * 
+     * -- GETTER --
+     *  Gets the value of the time property.
+     *
      * @return
      *     possible object is
      *     {@link XMLGregorianCalendar }
-     *     
      */
-    public XMLGregorianCalendar getTime() {
-        return time;
-    }
+    @JacksonXmlProperty(localName = "Time")
+    @XmlSchemaType(name = "dateTime")
+    protected XMLGregorianCalendar time;
+    /**
+     * -- GETTER --
+     *  Gets the value of the position property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Position }
+     */
+    @JacksonXmlProperty(localName = "Position")
+    protected Position position;
+    /**
+     * -- GETTER --
+     *  Gets the value of the altitudeMeters property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Double }
+     */
+    @JacksonXmlProperty(localName = "AltitudeMeters")
+    protected Double altitudeMeters;
+    /**
+     * -- GETTER --
+     *  Gets the value of the distanceMeters property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Double }
+     */
+    @JacksonXmlProperty(localName = "DistanceMeters")
+    protected Double distanceMeters;
+    /**
+     * -- GETTER --
+     *  Gets the value of the heartRateBpm property.
+     *
+     * @return
+     *     possible object is
+     *     {@link HeartRateInBeatsPerMinute }
+     */
+    @JacksonXmlProperty(localName = "HeartRateBpm")
+    protected HeartRateInBeatsPerMinute heartRateBpm;
+    /**
+     * -- GETTER --
+     *  Gets the value of the cadence property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Short }
+     */
+    @JacksonXmlProperty(localName = "Cadence")
+    @XmlSchemaType(name = "unsignedByte")
+    protected Short cadence;
+    /**
+     * -- GETTER --
+     *  Gets the value of the sensorState property.
+     *
+     * @return
+     *     possible object is
+     *     {@link SensorState }
+     */
+    @JacksonXmlProperty(localName = "SensorState")
+    @XmlSchemaType(name = "token")
+    protected SensorState sensorState;
+    /**
+     * -- GETTER --
+     *  Gets the value of the extensions property.
+     *
+     * @return
+     *     possible object is
+     *     {@link Extensions }
+     */
+    @JacksonXmlProperty(localName = "Extensions")
+    protected Extensions extensions;
 
     /**
      * Sets the value of the time property.
@@ -52,18 +108,6 @@ public class Trackpoint {
      */
     public void setTime(XMLGregorianCalendar value) {
         this.time = value;
-    }
-
-    /**
-     * Gets the value of the position property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Position }
-     *     
-     */
-    public Position getPosition() {
-        return position;
     }
 
     /**
@@ -79,18 +123,6 @@ public class Trackpoint {
     }
 
     /**
-     * Gets the value of the altitudeMeters property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
-     */
-    public Double getAltitudeMeters() {
-        return altitudeMeters;
-    }
-
-    /**
      * Sets the value of the altitudeMeters property.
      * 
      * @param value
@@ -100,18 +132,6 @@ public class Trackpoint {
      */
     public void setAltitudeMeters(Double value) {
         this.altitudeMeters = value;
-    }
-
-    /**
-     * Gets the value of the distanceMeters property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
-     */
-    public Double getDistanceMeters() {
-        return distanceMeters;
     }
 
     /**
@@ -127,18 +147,6 @@ public class Trackpoint {
     }
 
     /**
-     * Gets the value of the heartRateBpm property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link HeartRateInBeatsPerMinute }
-     *     
-     */
-    public HeartRateInBeatsPerMinute getHeartRateBpm() {
-        return heartRateBpm;
-    }
-
-    /**
      * Sets the value of the heartRateBpm property.
      * 
      * @param value
@@ -148,18 +156,6 @@ public class Trackpoint {
      */
     public void setHeartRateBpm(HeartRateInBeatsPerMinute value) {
         this.heartRateBpm = value;
-    }
-
-    /**
-     * Gets the value of the cadence property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Short }
-     *     
-     */
-    public Short getCadence() {
-        return cadence;
     }
 
     /**
@@ -175,18 +171,6 @@ public class Trackpoint {
     }
 
     /**
-     * Gets the value of the sensorState property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link SensorState }
-     *     
-     */
-    public SensorState getSensorState() {
-        return sensorState;
-    }
-
-    /**
      * Sets the value of the sensorState property.
      * 
      * @param value
@@ -196,18 +180,6 @@ public class Trackpoint {
      */
     public void setSensorState(SensorState value) {
         this.sensorState = value;
-    }
-
-    /**
-     * Gets the value of the extensions property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Extensions }
-     *     
-     */
-    public Extensions getExtensions() {
-        return extensions;
     }
 
     /**

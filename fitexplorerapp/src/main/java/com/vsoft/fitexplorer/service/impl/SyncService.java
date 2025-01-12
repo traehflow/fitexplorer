@@ -1,34 +1,25 @@
 package com.vsoft.fitexplorer.service.impl;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vsoft.fitexplorer.FitFileParser;
-import com.vsoft.fitexplorer.dto.AuthDetails;
+import com.vsoft.fitexplorer.dto.GarminAuthDetails;
 import com.vsoft.fitexplorer.jpl.FitRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.http.converter.ResourceHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -48,12 +39,12 @@ public class SyncService {
     ActivityService activityService;
 
     @Async
-    public CompletableFuture<Map<String, GarminActivity>> asSync(AuthDetails authDetails) throws JsonProcessingException {
-        var result = sync(authDetails);
+    public CompletableFuture<Map<String, GarminActivity>> asSync(GarminAuthDetails garminAuthDetails) throws JsonProcessingException {
+        var result = sync(garminAuthDetails);
         return new AsyncResult<>(result).completable();
     }
 
-    public Map<String, GarminActivity> sync(AuthDetails jwtToken) throws JsonProcessingException {
+    public Map<String, GarminActivity> sync(GarminAuthDetails jwtToken) throws JsonProcessingException {
         List<GarminActivity> garminActivities = new ArrayList<GarminActivity>();
         int start = 0;
         int count = 1000;
@@ -61,7 +52,7 @@ public class SyncService {
         Map<String, GarminActivity> map = new HashMap<>();
         List<GarminActivity> current;
         do {
-            current = extractActivities(jwtToken, count, start);
+            current = extractGarminActivities(jwtToken, count, start);
             map.putAll(current.stream().collect(Collectors.toMap(GarminActivity::getActivityId, x -> x, (x, y) -> x)));
             start += count;
         } while (current.size() == count);
@@ -80,7 +71,7 @@ public class SyncService {
         return map;
     }
 
-    private List<GarminActivity> extractActivities(AuthDetails jwtToken, int count, int start) throws JsonProcessingException {
+    private List<GarminActivity> extractGarminActivities(GarminAuthDetails jwtToken, int count, int start) throws JsonProcessingException {
         String url = "https://connect.garmin.com/activitylist-service/activities/search/activities?limit=" + count + "&start=" + start + "&_=1706304901809";
         HttpHeaders headers = new HttpHeaders();
 
@@ -119,7 +110,7 @@ public class SyncService {
         return activities;
     }
 
-    private String downloadActivity(AuthDetails jwtToken, String activityId, String activityName) throws IOException {
+    private String downloadActivity(GarminAuthDetails jwtToken, String activityId, String activityName) throws IOException {
         String url = "https://connect.garmin.com/download-service/files/activity/" + activityId;
         HttpEntity<String> entity = getStringHttpEntity(jwtToken, activityId);
 
@@ -144,7 +135,7 @@ public class SyncService {
         return result;
     }
 
-    private static HttpEntity<String> getStringHttpEntity(AuthDetails jwtToken, String activityId) {
+    private static HttpEntity<String> getStringHttpEntity(GarminAuthDetails jwtToken, String activityId) {
         HttpHeaders headers = new HttpHeaders();
 
         headers.set("authority", "connect.garmin.com");

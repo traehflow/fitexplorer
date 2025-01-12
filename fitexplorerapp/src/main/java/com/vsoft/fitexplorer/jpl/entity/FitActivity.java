@@ -17,7 +17,10 @@ import java.util.List;
         indexes = {@Index(name = "startTime", columnList = "startTime")})
 public class FitActivity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fitactivity_id_seq")
+    @SequenceGenerator(name = "fitactivity_id_seq", sequenceName = "fitactivity_id_seq", allocationSize = 500, initialValue = 100000000)
+
     int id;
     long startTime;
     String originalFile;

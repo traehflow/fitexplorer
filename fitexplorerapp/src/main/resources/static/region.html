@@ -72,9 +72,9 @@
     fetch(apiEndpoint)
         .then(response => response.json())
         .then(data => {
-            const fitUnitList = data.fitUnitList.filter(x => x.latitude != null && x.longitude != null);
+            const fitUnitList = data.fitUnitList;
 
-            const coordinates = fitUnitList.map(unit => [unit.latitude, unit.longitude]);
+            const coordinates = fitUnitList.filter(x => x.latitude != null && x.longitude != null).map(unit => [unit.latitude, unit.longitude]);
             const timestamps = fitUnitList.map(unit => unit.timestamp);
 
             // Calculate speeds, altitudes, and heart rates based on timestamps and data

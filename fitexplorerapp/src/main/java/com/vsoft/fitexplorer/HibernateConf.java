@@ -59,6 +59,19 @@ public class HibernateConf {
         hibernateProperties.setProperty(
                 "hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
+        hibernateProperties.setProperty(
+                "hibernate.jdbc.batch_size", "500");
+        hibernateProperties.setProperty(
+                "hibernate.order_inserts", "true");
+        hibernateProperties.setProperty(
+                "hibernate.order_updates", "true");
+        hibernateProperties.setProperty(
+                "hibernate.batch_versioned_data ", "true");
+
+
+        hibernateProperties.setProperty("hibernate.format_sql","true");
+        hibernateProperties.setProperty("spring.jpa.properties.hibernate.show_sql", "false");
+
         return hibernateProperties;
     }
 }

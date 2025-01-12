@@ -11,7 +11,13 @@ import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Repository;
 
@@ -23,13 +29,86 @@ import java.util.Set;
 @Repository
 public class FitRepository {
 
+    private static final Logger hibernateLogger = LoggerFactory.getLogger("org.hibernate");
+
     @Autowired
     UserProfile userProfile;
 
+    @Autowired
+    private Environment environment;
+
+
     @Transactional
     public FitUnit save(FitUnit fitUnit) {
+
+        Session session = entityManager.unwrap(Session.class);
+        SessionFactory sessionFactory = session.getSessionFactory();
+        if (sessionFactory instanceof SessionFactoryImplementor) {
+            SessionFactoryImplementor sessionFactoryImpl = (SessionFactoryImplementor) sessionFactory;
+
+            // Access advanced configuration options
+
+            Integer batchSize = sessionFactoryImpl.getSessionFactoryOptions().getJdbcBatchSize();
+            //System.out.println("JDBC Batch Size: " + batchSize);
+
+            String batchSizeInt = environment.getProperty("hibernate.jdbc.batch_size");
+            //System.out.println("Batch Size: " + batchSizeInt);
+
+            String dialectName = sessionFactoryImpl.getJdbcServices().getDialect().getClass().getName();
+            //System.out.println("Database Dialect: " + dialectName);
+/*
+            System.out.println("Order inserts enabled: " + sessionFactoryImpl.getSessionFactoryOptions()
+                    .isOrderInsertsEnabled());
+            System.out.println("Order updates enabled: " + sessionFactoryImpl.getSessionFactoryOptions()
+                    .isOrderUpdatesEnabled());
+*/
+
+        } else {
+            System.out.println("SessionFactory is not an instance of SessionFactoryImplementor.");
+        }
+
+
         entityManager.merge(fitUnit);
         return fitUnit;
+    }
+
+    @Transactional
+    public void save(List<FitUnit> fitUnits) {
+
+        Session session = entityManager.unwrap(Session.class);
+        SessionFactory sessionFactory = session.getSessionFactory();
+        if (sessionFactory instanceof SessionFactoryImplementor) {
+            SessionFactoryImplementor sessionFactoryImpl = (SessionFactoryImplementor) sessionFactory;
+
+            // Access advanced configuration options
+
+            if (hibernateLogger.isDebugEnabled() || hibernateLogger.isTraceEnabled()) {
+                Integer batchSize = sessionFactoryImpl.getSessionFactoryOptions().getJdbcBatchSize();
+                System.out.println("JDBC Batch Size: " + batchSize);
+
+                String batchSizeInt = environment.getProperty("hibernate.jdbc.batch_size");
+                System.out.println("Batch Size: " + batchSizeInt);
+
+                String dialectName = sessionFactoryImpl.getJdbcServices().getDialect().getClass().getName();
+                System.out.println("Database Dialect: " + dialectName);
+
+                System.out.println("Order inserts enabled: " + sessionFactoryImpl.getSessionFactoryOptions()
+                        .isOrderInsertsEnabled());
+                System.out.println("Order updates enabled: " + sessionFactoryImpl.getSessionFactoryOptions()
+                      .isOrderUpdatesEnabled());
+
+            }
+
+        } else {
+            System.out.println("SessionFactory is not an instance of SessionFactoryImplementor.");
+        }
+
+
+        for(FitUnit f : fitUnits) {
+            entityManager.persist(f);
+        }
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Transactional

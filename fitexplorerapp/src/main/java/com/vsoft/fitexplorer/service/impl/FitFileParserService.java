@@ -138,14 +138,25 @@ public class FitFileParserService {
             case JUMPMASTER -> null;
             case BOXING -> null;
             case FLOOR_CLIMBING -> null;
+            case BASEBALL -> null;
             case DIVING -> null;
             case HIIT -> null;
             case RACKET -> null;
             case WHEELCHAIR_PUSH_WALK -> null;
             case WHEELCHAIR_PUSH_RUN -> null;
             case MEDITATION -> null;
+            case DISC_GOLF -> null;
+            case CRICKET -> null;
+            case RUGBY -> null;
+            case HOCKEY -> null;
+            case LACROSSE -> null;
+            case VOLLEYBALL -> null;
             case WATER_TUBING -> null;
             case WAKESURFING -> null;
+            case MIXED_MARTIAL_ARTS -> null;
+            case SNORKELING -> null;
+            case DANCE -> null;
+            case JUMP_ROPE -> null;
         };
     }
 

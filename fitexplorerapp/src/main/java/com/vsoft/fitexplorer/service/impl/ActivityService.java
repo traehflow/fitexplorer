@@ -70,12 +70,22 @@ public class ActivityService {
 
         // Keep in mind that some activities does not have coordinates.
         if (!track.isEmpty()) {
-            track.stream().forEach(x -> {
+            List<FitUnit> list = new ArrayList<>();
+            long lastTimestamp = 0;
+
+            for(int i = 0; i < track.size(); ++i) {
+            //track.forEach(x -> {
+                Coordinate x = track.get(i);
                 FitUnit fitUnit = new FitUnit();
                 fitUnit.setFitActivity(fitActivity);
                 // I don't think that there are activity tracking without timestamps, but let it be safe.
-                    if (x.getTimestamp() != null) {
+                if (x.getTimestamp() != null && x.getTimestamp().getTimestamp() != null
+                   && x.getTimestamp().getTimestamp() != lastTimestamp) {
+
                     fitUnit.setTimestamp(x.getTimestamp().getTimestamp());
+                    lastTimestamp = x.getTimestamp().getTimestamp();
+                } else {
+                    continue;
                 }
                 // Some activities may not have latitude and longitude, for example indoor swimming
                 fitUnit.setLatitude(x.getLatitude());
@@ -85,8 +95,16 @@ public class ActivityService {
                 fitUnit.setHeartRate(x.getHeartRate());
 
                 fitUnit.setHeartRate(x.getHeartRate());
-                fitRepository.save(fitUnit);
-            });
+                list.add(fitUnit);
+                if(list.size() == 500) {
+                    fitRepository.save(list);
+                    list.clear();
+
+                }
+            }
+            if(!list.isEmpty()) {
+                fitRepository.save(list);
+            }
         }
     }
 
@@ -135,7 +153,7 @@ public class ActivityService {
         return result.toString();
     }
 
-    public void saveTcxFile(InputStream inputStream) throws IOException {
+    public void saveTcxFile(InputStream inputStream, String name) throws IOException {
         XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         TrainingCenterDatabase db = xmlMapper.readValue(inputStream, TrainingCenterDatabase.class);
@@ -143,30 +161,43 @@ public class ActivityService {
         FitFileData fitFileData = new FitFileData();
         if (!db.getActivities().isEmpty()) {
             var metadata = db.getActivities().get(0);
-            fitFileData.setActivityName(metadata.getId());
+            System.out.println("Extracting " + name + " from: " + metadata.getId());
+            fitFileData.setActivityName(name);
             fitFileData.setDescription(metadata.getNotes());
             List<Coordinate> list = new ArrayList<>();
             fitFileData.setStartTimeLocal(Date.from(metadata.getLap().get(0).getStartTime().toGregorianCalendar().toInstant()));
             for (Lap l : metadata.getLap()) {
-                for (var wp : l.getTrack()) {
-                    Coordinate f = new Coordinate();
+                if (l.getTrack() != null && !l.getTrack().isEmpty()) {
+                    for (var wp : l.getTrack()) {
+                        Coordinate f = new Coordinate();
 
-                    if (wp.getPosition() != null) {
-                        f.setLatitude(wp.getPosition().getLatitudeDegrees());
-                        f.setLongitude(wp.getPosition().getLongitudeDegrees());
-                    } else {
-                        // Some activities may contain points without coordinates \
-                        // (gps is not turned on while doing the activity)
-                        System.out.println(wp);
+                        if (wp.getPosition() != null) {
+                            f.setLatitude(wp.getPosition().getLatitudeDegrees());
+                            f.setLongitude(wp.getPosition().getLongitudeDegrees());
+                        } else {
+                            // Some activities may contain points without coordinates \
+                            // (gps is not turned on while doing the activity)
+                            //System.out.println(wp);
+                        }
+                        if (wp.getAltitudeMeters() != null) {
+                            f.setAltitude(wp.getAltitudeMeters().floatValue());
+                        }
+                        if (wp.getHeartRateBpm() != null) {
+                            f.setHeartRate(wp.getHeartRateBpm().getValue());
+                        }
+
+                        f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
+                        list.add(f);
                     }
-                    f.setAltitude(wp.getAltitudeMeters().floatValue());
-                    f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
-                    list.add(f);
+                } else {
+                    System.out.println("Missing track info for: " + name);
                 }
             }
 
             fitFileData.setCoordinates(list);
             saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
+        } else {
+            System.out.println("Empty activity: " + name);
         }
     }
 }

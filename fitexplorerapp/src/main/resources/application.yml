@@ -10,14 +10,36 @@ spring:
     database: POSTGRESQL
     show-sql: true
     hibernate:
-      dialect: org.hibernate.dialect.PostgreSQLDialect
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-logging:
+      hbm2ddl:
+        auto: none
+      dialect: org.hibernate.dialect.PostgreSQLDialect1
+      jdbc:
+        batch_size: 500
+      order_inserts: true
+      order_updates: true
+      default_batch_fetch_size: true
+      properties:
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
+        default_batch_fetch_size: true
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          batch_size: 500
+        order_inserts: true
+        order_updates: true
+        batch_versioned_data: true
+
+        show_sql: true
+        logging:
   level:
     root: ERROR
     org.springframework.web: DEBUG
     com.howtodoinjava: DEBUG
-    org.hibernate: DEBUG
+    org.hibernate: ERROR
     org.springframework.security: DEBUG
 secret: gdsfsfdvsdfvdfvrtgtregfrevgrtgvfrevgretvdfvdfvfdvdfvdfvtrvtrcdefcefdcefkjcneirfcuierhciurhcuier
 server:
