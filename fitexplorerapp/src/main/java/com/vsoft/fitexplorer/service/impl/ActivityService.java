@@ -15,6 +15,8 @@ import io.jenetics.jpx.GPX;
 import io.jenetics.jpx.Track;
 import io.jenetics.jpx.TrackSegment;
 import io.jenetics.jpx.WayPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,8 @@ public class ActivityService {
     @Autowired
     private FitFileParserService fitFileParserService;
 
+
+    private static final Logger logger = LoggerFactory.getLogger(ActivityService.class.getCanonicalName());
 
     public void saveActivity(InputStream fitFileStream, String activityName, String activityId) throws FileNotFoundException {
         var fitFileData = fitFileParserService.parseFitFile(fitFileStream);
@@ -130,11 +134,17 @@ public class ActivityService {
             fitFileData.setActivityName(String.join(", ", fitFileData.getActivityName(), track.getName().orElse(null)));
             fitFileData.setDescription(String.join(", ", fitFileData.getDescription(), track.getDescription().orElse(null)));
         }
+        double currentDistance = 0.0;
+        double oldLatitude = 0;
+        double oldLongitude = 0;
+        boolean first = true;
 
         for (Track track : gpx.getTracks()) {
             result.append("Track: ").append(track).append(", Track type: ").append(track.getType()).append("<br>\n");
             for (TrackSegment segment : track.getSegments()) {
                 for (WayPoint wp : segment.getPoints()) {
+
+
                     Coordinate f = new Coordinate();
 
                     f.setLatitude(wp.getLatitude().doubleValue());
@@ -142,8 +152,26 @@ public class ActivityService {
                     f.setAltitude(wp.getElevation().get().floatValue());
                     f.setTimestamp(new DateTime(wp.getTime().get().toInstant().toEpochMilli()));
 
+                    if (!first) {
+                        currentDistance = currentDistance +
+                                haversine(
+                                        oldLatitude,
+                                        oldLongitude,
+                                        wp.getLatitude().doubleValue(),
+                                        wp.getLongitude().doubleValue()
+                                );
+
+                    } else {
+                        first = false;
+                    }
+
+
+                    f.setDistance((float)currentDistance);
+
                     list.add(f);
 
+                    oldLongitude = f.getLongitude();
+                    oldLatitude = f.getLatitude();
                     result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().orElse(null)).append("<br>\n");
                 }
             }
@@ -161,7 +189,7 @@ public class ActivityService {
         FitFileData fitFileData = new FitFileData();
         if (!db.getActivities().isEmpty()) {
             var metadata = db.getActivities().get(0);
-            System.out.println("Extracting " + name + " from: " + metadata.getId());
+            logger.info("Extracting " + name + " from: " + metadata.getId());
             fitFileData.setActivityName(name);
             fitFileData.setDescription(metadata.getNotes());
             List<Coordinate> list = new ArrayList<>();
@@ -169,35 +197,59 @@ public class ActivityService {
             for (Lap l : metadata.getLap()) {
                 if (l.getTrack() != null && !l.getTrack().isEmpty()) {
                     for (var wp : l.getTrack()) {
-                        Coordinate f = new Coordinate();
+                        Coordinate coordinate = new Coordinate();
 
                         if (wp.getPosition() != null) {
-                            f.setLatitude(wp.getPosition().getLatitudeDegrees());
-                            f.setLongitude(wp.getPosition().getLongitudeDegrees());
+                            coordinate.setLatitude(wp.getPosition().getLatitudeDegrees());
+                            coordinate.setLongitude(wp.getPosition().getLongitudeDegrees());
                         } else {
-                            // Some activities may contain points without coordinates \
-                            // (gps is not turned on while doing the activity)
-                            //System.out.println(wp);
+                                // Some activities may contain points without coordinates \
+                                // (gps is not turned on while doing the activity)
+                                //System.out.println(wp);
                         }
                         if (wp.getAltitudeMeters() != null) {
-                            f.setAltitude(wp.getAltitudeMeters().floatValue());
+                            coordinate.setAltitude(wp.getAltitudeMeters().floatValue());
+                        }
+                        if (wp.getDistanceMeters() != null) {
+                            coordinate.setDistance(wp.getDistanceMeters().floatValue());
                         }
                         if (wp.getHeartRateBpm() != null) {
-                            f.setHeartRate(wp.getHeartRateBpm().getValue());
+                            coordinate.setHeartRate(wp.getHeartRateBpm().getValue());
                         }
-
-                        f.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
-                        list.add(f);
+                        coordinate.setTimestamp(new DateTime(wp.getTime().toGregorianCalendar().getTime()));
+                        list.add(coordinate);
                     }
                 } else {
-                    System.out.println("Missing track info for: " + name);
+                    logger.error("Missing track info for: " + name);
                 }
             }
 
             fitFileData.setCoordinates(list);
             saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
         } else {
-            System.out.println("Empty activity: " + name);
+            logger.error("Empty activity: " + name);
         }
+    }
+
+    public static double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final double R = 6371; // Earth's radius in km
+
+        // Convert degrees to radians
+        lat1 = Math.toRadians(lat1);
+        lon1 = Math.toRadians(lon1);
+        lat2 = Math.toRadians(lat2);
+        lon2 = Math.toRadians(lon2);
+
+        // Differences in coordinates
+        double dlat = lat2 - lat1;
+        double dlon = lon2 - lon1;
+
+        // Haversine formula
+        double a = Math.pow(Math.sin(dlat / 2), 2)
+                + Math.cos(lat1) * Math.cos(lat2) * Math.pow(Math.sin(dlon / 2), 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        // Distance
+        return R * c;
     }
 }
