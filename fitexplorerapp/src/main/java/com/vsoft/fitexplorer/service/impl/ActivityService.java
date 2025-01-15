@@ -112,9 +112,8 @@ public class ActivityService {
         }
     }
 
-    public String saveGpxFile(InputStream inputStream) throws IOException {
+    public void saveGpxFile(InputStream inputStream) throws IOException {
         GPX gpx = GPX.read(inputStream);
-        StringBuilder result = new StringBuilder();
         FitFileData fitFileData = new FitFileData();
         fitFileData.setActivityId((long) gpx.hashCode());
         var metadata = gpx.getMetadata();
@@ -127,8 +126,10 @@ public class ActivityService {
 
         fitFileData.setCoordinates(list);
 
-        for (WayPoint wp : gpx.getWayPoints()) {
-            result.append("Waypoint: ").append(wp).append("<br>\n");
+        if(logger.isTraceEnabled()) {
+            for (WayPoint wp : gpx.getWayPoints()) {
+                logger.trace("Waypoint: " + wp);
+            }
         }
         for (Track track : gpx.getTracks()) {
             fitFileData.setActivityName(String.join(", ", fitFileData.getActivityName(), track.getName().orElse(null)));
@@ -140,7 +141,9 @@ public class ActivityService {
         boolean first = true;
 
         for (Track track : gpx.getTracks()) {
-            result.append("Track: ").append(track).append(", Track type: ").append(track.getType()).append("<br>\n");
+            if(logger.isTraceEnabled()) {
+                logger.trace("Track: " + track + ", Track type: " + track.getType());
+            }
             for (TrackSegment segment : track.getSegments()) {
                 for (WayPoint wp : segment.getPoints()) {
 
@@ -172,13 +175,14 @@ public class ActivityService {
 
                     oldLongitude = f.getLongitude();
                     oldLatitude = f.getLatitude();
-                    result.append("Track Point: ").append(wp).append(", time:").append(wp.getTime().orElse(null)).append("<br>\n");
+                    if (logger.isTraceEnabled()) {
+                        logger.trace("Track Point: " + wp + ", time:" + wp.getTime().orElse(null));
+                    }
                 }
             }
         }
         fitFileData.setCoordinates(list);
         saveActivity(fitFileData, fitFileData.getActivityName(), String.valueOf(fitFileData.getActivityId()));
-        return result.toString();
     }
 
     public void saveTcxFile(InputStream inputStream, String name) throws IOException {

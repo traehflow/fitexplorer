@@ -98,7 +98,8 @@ public class ActivityController {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
-            return activityService.saveGpxFile(inputStream);
+            activityService.saveGpxFile(inputStream);
+            return "done";
         } catch (IOException e) {
             e.printStackTrace();
             throw new HttpClientErrorException(BAD_REQUEST, "Error reading GPX file");
