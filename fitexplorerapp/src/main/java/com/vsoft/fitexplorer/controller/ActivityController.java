@@ -50,27 +50,19 @@ public class ActivityController {
     //    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/list")
     public List<FitActivityDTO> listActivities() {
-        return  convertA(fitRepository.listFitActivities());
+        return  activityService.convertA(fitRepository.listFitActivities());
     }
 
-    private List<FitActivityDTO> convertA(List<FitActivity> fitActivities) {
-        return  fitActivities.stream().map(x -> new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(), List.of(), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed()))
-                .collect(Collectors.toList());
-    }
-
-    private FitActivityDTO convertA(FitActivity x) {
-        return new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(),  convertAA(fitRepository.listFitActivityUnits(x)), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed());
-    }
-//631065600
-    private List<FitUnitDTO> convertAA(List<FitUnit> fitUnitList) {
-        return fitUnitList.stream().map(x -> new FitUnitDTO(x.getLatitude(), x.getLongitude(), x.getAltitude(), x.getHeartRate(), x.getTimestamp() + 631065600, x.getDistance(), x.getTemperature())).collect(Collectors.toList());
+    @GetMapping("/laps")
+    public List<PaceDetail> laps(int id) {
+        return  activityService.getLaps(id);
     }
 
   //  @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/val")
     @Transactional
     public FitActivityDTO showActivity( int id) {
-        return convertA(fitRepository.listFitActivity(id));
+        return activityService.retrieveActivity(id);
     }
 
     @GetMapping("/heatmap")

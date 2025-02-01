@@ -224,4 +224,5 @@ public class FitRepository {
             return query.getResultList();
         }
     }
+
 }

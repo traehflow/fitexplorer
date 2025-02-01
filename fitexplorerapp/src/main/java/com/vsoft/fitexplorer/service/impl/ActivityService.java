@@ -3,7 +3,11 @@ package com.vsoft.fitexplorer.service.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.garmin.fit.DateTime;
+import com.vsoft.fitexplorer.controller.FitActivityDTO;
+import com.vsoft.fitexplorer.controller.FitUnitDTO;
+import com.vsoft.fitexplorer.controller.PaceDetail;
 import com.vsoft.fitexplorer.importTypes.tcx.Lap;
+import com.vsoft.fitexplorer.importTypes.tcx.Trackpoint;
 import com.vsoft.fitexplorer.importTypes.tcx.TrainingCenterDatabase;
 import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
@@ -15,6 +19,8 @@ import io.jenetics.jpx.GPX;
 import io.jenetics.jpx.Track;
 import io.jenetics.jpx.TrackSegment;
 import io.jenetics.jpx.WayPoint;
+import jakarta.transaction.Transactional;
+import org.apache.commons.collections4.ListUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +32,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ActivityService {
@@ -110,6 +117,10 @@ public class ActivityService {
                 fitRepository.save(list);
             }
         }
+    }
+
+    public FitActivityDTO retrieveActivity( int id) {
+        return this.convertA(fitRepository.listFitActivity(id));
     }
 
     public void saveGpxFile(InputStream inputStream) throws IOException {
@@ -255,5 +266,79 @@ public class ActivityService {
 
         // Distance
         return R * c;
+    }
+
+    private static final double DISTANCE_THRESHOLD = 0.01; // Minimum movement in km (10 meters)
+
+    public List<PaceDetail> calculatePace(List<FitUnit> trackPoints) {
+        List<PaceDetail> result = new ArrayList<>();
+        if(ListUtils.emptyIfNull(trackPoints).isEmpty()) {
+            return List.of();
+        }
+        double lastKmMark = trackPoints.get(0).getDistance();
+
+
+        long lastTimeMark = trackPoints.get(0).getTimestamp();
+
+        float lastElevation = trackPoints.get(0).getAltitude();
+
+        float accumulatedElevationGain = 0.F;
+        float accumulatedElevationLoss = 0.F;
+        float averageHeartrate = trackPoints.get(0).getHeartRate();
+        float maxHeartrate = trackPoints.get(0).getHeartRate();
+        float minHeartrate = trackPoints.get(0).getHeartRate();
+        long countInLap = 0;
+
+
+        for(var tp : trackPoints) {
+            if(tp.getDistance() - lastKmMark >= 1000.) {
+                PaceDetail paceDetail = new PaceDetail();
+                long interval = tp.getTimestamp() - lastTimeMark;
+                paceDetail.setMinutes((int) (interval / 60));
+                paceDetail.setSeconds((int) (interval % 60));
+                paceDetail.setElevationGain(accumulatedElevationGain);
+                paceDetail.setElevationLoss(accumulatedElevationLoss);
+                paceDetail.setMinHeartbeat(minHeartrate);
+                paceDetail.setMaxHeartbeat(maxHeartrate);
+                paceDetail.setAverageHeartbeat(averageHeartrate);
+                result.add(paceDetail);
+                lastTimeMark = tp.getTimestamp();
+                lastKmMark = tp.getDistance();
+                accumulatedElevationGain = 0.F;
+                accumulatedElevationLoss = 0.F;
+                countInLap = 0;
+            }
+
+            if(tp.getAltitude() > lastElevation) {
+                accumulatedElevationGain += tp.getAltitude() - lastElevation;
+            } else {
+                accumulatedElevationLoss -= lastElevation - tp.getAltitude();
+            }
+            minHeartrate = Math.min(minHeartrate, tp.getHeartRate());
+            maxHeartrate = Math.max(maxHeartrate, tp.getHeartRate());
+            averageHeartrate += (tp.getHeartRate() - averageHeartrate) / (countInLap + 1);
+            lastElevation = tp.getAltitude();
+            ++countInLap;
+
+        }
+        return result;
+    }
+
+    public static List<FitActivityDTO> convertA(List<FitActivity> fitActivities) {
+        return  fitActivities.stream().map(x -> new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(), List.of(), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed()))
+                .collect(Collectors.toList());
+    }
+
+    public FitActivityDTO convertA(FitActivity x) {
+        return new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(),  convertAA(fitRepository.listFitActivityUnits(x)), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed());
+    }
+    //631065600
+    public static List<FitUnitDTO> convertAA(List<FitUnit> fitUnitList) {
+        return fitUnitList.stream().map(x -> new FitUnitDTO(x.getLatitude(), x.getLongitude(), x.getAltitude(), x.getHeartRate(), x.getTimestamp() + 631065600, x.getDistance(), x.getTemperature())).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<PaceDetail> getLaps(int id) {
+        return calculatePace(fitRepository.listFitActivity(id).getFitUnitList());
     }
 }
