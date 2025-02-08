@@ -24,17 +24,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
-        String tokenHeader = request.getHeader("Authorization");
-        if (tokenHeader == null && request.getCookies() != null) {
-            var cookie = Arrays.stream(request.getCookies()).filter(c -> c.getName().equals("auth-token")).findFirst();
-           if (cookie.isPresent()) {
-              tokenHeader = "Bearer " + cookie.get().getValue();
-           }
-        }
+        String token = getTokenFromRequest(request);
         String username = null;
-        String token = null;
-        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-            token = tokenHeader.substring(7);
+        if (token != null) {
             try {
                 username = tokenManager.getUsernameFromToken(token);
             } catch (IllegalArgumentException e) {
@@ -62,6 +54,22 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    public static String getTokenFromRequest(HttpServletRequest request) {
+        String tokenHeader = request.getHeader("Authorization");
+        if (tokenHeader == null && request.getCookies() != null) {
+            var cookie = Arrays.stream(request.getCookies()).filter(c -> c.getName().equals("auth-token")).findFirst();
+           if (cookie.isPresent()) {
+              tokenHeader = "Bearer " + cookie.get().getValue();
+           }
+        }
+
+        String token = null;
+        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
+            token = tokenHeader.substring(7);
+        }
+        return token;
     }
 
     private static void expireAuthCookie(HttpServletResponse response) {

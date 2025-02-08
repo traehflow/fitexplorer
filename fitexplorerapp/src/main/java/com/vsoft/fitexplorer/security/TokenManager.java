@@ -23,7 +23,8 @@ public class TokenManager implements Serializable {
         return Jwts.builder().setClaims(claims).setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setSubject(userDetails.getUsername())
-                .addClaims(Map.of("additional_role", "role"))
+                .addClaims(Map.of("additional_role", "role",
+                        "user_id", 1))
                 .setExpiration(new Date(System.currentTimeMillis() + TOKEN_VALIDITY * 1000))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
     }
@@ -37,4 +38,10 @@ public class TokenManager implements Serializable {
         final Claims claims = Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(token).getBody();
         return claims.getSubject();
     }
+
+    public int getUserIdFromToken(String token) {
+        final Claims claims = Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(token).getBody();
+        return (Integer)claims.get("user_id");
+    }
+
 }

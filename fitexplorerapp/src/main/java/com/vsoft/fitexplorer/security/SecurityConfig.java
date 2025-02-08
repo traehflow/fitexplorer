@@ -1,8 +1,12 @@
 package com.vsoft.fitexplorer.security;
 
 import com.vsoft.fitexplorer.UserProfile;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import com.vsoft.fitexplorer.Roles;
@@ -19,6 +23,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -40,6 +45,9 @@ public class SecurityConfig {
     private UserDetailsService userDetailsService;
     @Autowired
     private JwtFilter filter;
+
+    @Autowired
+    private TokenManager tokenManager;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationSuccessHandler customLoginSuccessHandler) throws Exception {
@@ -88,7 +96,12 @@ public class SecurityConfig {
             userProfile.setAdmin(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.ADMIN)));
             userProfile.setMerchant(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.TRAINEE)));
         }
-        userProfile.setUserId(1);
+        String token = JwtFilter.getTokenFromRequest(request);
+        if(StringUtils.isEmpty(token)) {
+            throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
+        }
+
+        userProfile.setUserId(tokenManager.getUserIdFromToken(token));
         userProfile.setUserName(principal.getName());
         return userProfile;
     }
@@ -100,6 +113,21 @@ public class SecurityConfig {
     }
 
 
+    public static String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // Remove "Bearer " prefix
+        }
+        return null;
+    }
 
+    public static Claims getClaimsFromToken(String token) {
+/*        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();*/
+        return null;
+    }
 }
 

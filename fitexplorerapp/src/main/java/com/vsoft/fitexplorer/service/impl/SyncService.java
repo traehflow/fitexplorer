@@ -110,9 +110,9 @@ public class SyncService {
         return activities;
     }
 
-    private String downloadActivity(GarminAuthDetails jwtToken, String activityId, String activityName) throws IOException {
+    private String downloadActivity(GarminAuthDetails garminAuthDetails, String activityId, String activityName) throws IOException {
         String url = "https://connect.garmin.com/download-service/files/activity/" + activityId;
-        HttpEntity<String> entity = getStringHttpEntity(jwtToken, activityId);
+        HttpEntity<String> entity = getStringHttpEntity(garminAuthDetails, activityId);
 
         RestTemplate restTemplate = new RestTemplate();
 
