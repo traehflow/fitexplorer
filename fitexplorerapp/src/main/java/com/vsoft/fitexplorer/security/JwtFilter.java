@@ -24,7 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws jakarta.servlet.ServletException, IOException {
-        String token = getTokenFromRequest(request);
+        String token = tokenManager.getTokenFromRequest(request);
         String username = null;
         if (token != null) {
             try {
@@ -43,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         if (null != username &&SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-            if (tokenManager.validateJwtToken(token, userDetails)) {
+            if (tokenManager.validateJwtToken(token, userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken
                         authenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null,
@@ -54,22 +54,6 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-    }
-
-    public static String getTokenFromRequest(HttpServletRequest request) {
-        String tokenHeader = request.getHeader("Authorization");
-        if (tokenHeader == null && request.getCookies() != null) {
-            var cookie = Arrays.stream(request.getCookies()).filter(c -> c.getName().equals("auth-token")).findFirst();
-           if (cookie.isPresent()) {
-              tokenHeader = "Bearer " + cookie.get().getValue();
-           }
-        }
-
-        String token = null;
-        if (tokenHeader != null && tokenHeader.startsWith("Bearer ")) {
-            token = tokenHeader.substring(7);
-        }
-        return token;
     }
 
     private static void expireAuthCookie(HttpServletResponse response) {

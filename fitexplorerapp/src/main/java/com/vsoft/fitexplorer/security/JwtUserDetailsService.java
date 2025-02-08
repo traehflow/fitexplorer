@@ -21,53 +21,42 @@ public class JwtUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    Map<String, SimpleGrantedAuthority> roleMap = Map.of("ADMIN",  new SimpleGrantedAuthority("ROLE_ADMIN"),
+            "TRAINEE", new SimpleGrantedAuthority("ROLE_TRAINEE"));
+
     public JwtUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @PostConstruct
     public void postConstruct() {
-/*        userRepository.save(new UserData("wolfheart@mail.com",
-                "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                Set.of("TRAINEE")));
-        userRepository.save(new UserData("petersecada@merchant.com",
-                "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                Set.of("MERCHANT")));
-        userRepository.save(new UserData("admin",
-                "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                Set.of("ADMIN")));*/
     }
 
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        var ADMIN = new SimpleGrantedAuthority("ROLE_ADMIN");
-        var TRAINEE = new SimpleGrantedAuthority("ROLE_TRAINEE");
-        Map<String, SimpleGrantedAuthority> roleMap = Map.of("ADMIN",  new SimpleGrantedAuthority("ROLE_ADMIN"),
-                "TRAINEE", new SimpleGrantedAuthority("ROLE_TRAINEE"));
-        UserData user = userRepository.loadUser(username);
+        UserData user = retrieveUser(username);
         if(user != null) {
             return new User(
                     user.getUsername(),
                     user.getPassword(),
                     CollectionUtils.emptyIfNull(user.getRole().stream().map(roleMap::get).filter(Objects::nonNull).collect(Collectors.toSet())));
         }
-        if ("wolfheart@mail.com".equals(username)) {
-            return new User("wolfheart@mail.com",
-                    "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                    List.of(TRAINEE));
-        } else if ("petersecada@mail.com".equals(username)) {
-            return new User("petersecada@mail.com",
-                    "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                    List.of(TRAINEE));
-        } else if ("admin".equals(username)) {
-            return new User("admin",
-                    "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
-                    List.of(ADMIN));
-        } else {
-            throw new UsernameNotFoundException("UserData not found with username: " + username);
-        }
+        throw new UsernameNotFoundException("UserData not found with username: " + username);
 
+    }
+
+    public UserData retrieveUser(String username) throws UsernameNotFoundException {
+        UserData user = userRepository.loadUser(username);
+        if(user == null) {
+            if ("admin".equals(username)) {
+                return new UserData(1,
+                        "admin",
+                        "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
+                        Set.of("ADMIN"));
+            }
+        }
+        return user;
     }
 }

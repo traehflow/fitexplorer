@@ -96,7 +96,7 @@ public class SecurityConfig {
             userProfile.setAdmin(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.ADMIN)));
             userProfile.setMerchant(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.TRAINEE)));
         }
-        String token = JwtFilter.getTokenFromRequest(request);
+        String token = tokenManager.getTokenFromRequest(request);
         if(StringUtils.isEmpty(token)) {
             throw new HttpClientErrorException(HttpStatus.UNAUTHORIZED);
         }
