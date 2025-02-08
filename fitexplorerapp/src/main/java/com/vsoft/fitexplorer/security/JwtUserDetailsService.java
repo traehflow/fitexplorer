@@ -57,8 +57,8 @@ public class JwtUserDetailsService implements UserDetailsService {
             return new User("wolfheart@mail.com",
                     "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
                     List.of(TRAINEE));
-        } else if ("petersecada@merchant.com".equals(username)) {
-            return new User("petersecada@merchant.com",
+        } else if ("petersecada@mail.com".equals(username)) {
+            return new User("petersecada@mail.com",
                     "$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6",
                     List.of(TRAINEE));
         } else if ("admin".equals(username)) {

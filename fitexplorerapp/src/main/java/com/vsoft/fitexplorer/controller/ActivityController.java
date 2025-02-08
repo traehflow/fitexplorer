@@ -1,12 +1,10 @@
 package com.vsoft.fitexplorer.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.vsoft.fitexplorer.UserProfile;
 import com.vsoft.fitexplorer.dto.GarminAuthDetails;
 import com.vsoft.fitexplorer.dto.MapMyRunAuthDetail;
-import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
-import com.vsoft.fitexplorer.jpl.entity.FitActivity;
-import com.vsoft.fitexplorer.jpl.entity.FitUnit;
 import com.vsoft.fitexplorer.service.impl.ActivityService;
 import com.vsoft.fitexplorer.service.impl.MapMyRunSyncService;
 import com.vsoft.fitexplorer.service.impl.SyncService;
@@ -15,9 +13,9 @@ import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
@@ -33,11 +30,13 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RestController
 @RequestMapping("/activities/")
 public class ActivityController {
-    @Autowired
-    private FitRepository fitRepository;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private UserProfile userProfile;
+
     @Autowired
     private ActivityService activityService;
 
@@ -49,25 +48,25 @@ public class ActivityController {
 
     //    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/list")
-    public List<FitActivityDTO> listActivities() {
-        return  activityService.convertA(fitRepository.listFitActivities());
+    public List<FitActivityDTO> listActivitiesByUser() {
+        return  activityService.listActivities(userProfile.getUserId());
     }
 
     @GetMapping("/laps")
-    public List<PaceDetail> laps(int id) {
-        return  activityService.getLaps(id);
+    public List<PaceDetail> laps() {
+        return  activityService.getLaps(userProfile.getUserId());
     }
 
   //  @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/val")
     @Transactional
     public FitActivityDTO showActivity( int id) {
-        return activityService.retrieveActivity(id);
+        return activityService.retrieveActivity(id, userProfile.getUserId());
     }
 
     @GetMapping("/heatmap")
     public Map<Pair<Double, Double>, Long> heatmap() {
-        return fitRepository.loadHeatMap(null);
+        return activityService.loadHeatMap(null);
     }
 
     @PostMapping("/sync")

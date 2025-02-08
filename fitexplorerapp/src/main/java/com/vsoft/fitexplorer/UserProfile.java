@@ -7,6 +7,7 @@ import lombok.Generated;
 @Generated
 public class UserProfile {
     String userName;
+    int userId;
     boolean isAdmin;
     boolean isMerchant;
 }

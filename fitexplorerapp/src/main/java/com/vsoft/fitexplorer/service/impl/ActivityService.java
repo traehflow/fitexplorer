@@ -13,6 +13,7 @@ import com.vsoft.fitexplorer.jpl.FitRepository;
 import com.vsoft.fitexplorer.jpl.UserRepository;
 import com.vsoft.fitexplorer.jpl.entity.FitActivity;
 import com.vsoft.fitexplorer.jpl.entity.FitUnit;
+import com.vsoft.fitexplorer.jpl.entity.UserData;
 import com.vsoft.fitexplorer.parsing.garmin.Coordinate;
 import com.vsoft.fitexplorer.parsing.garmin.FitFileData;
 import io.jenetics.jpx.GPX;
@@ -21,6 +22,7 @@ import io.jenetics.jpx.TrackSegment;
 import io.jenetics.jpx.WayPoint;
 import jakarta.transaction.Transactional;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -119,8 +122,8 @@ public class ActivityService {
         }
     }
 
-    public FitActivityDTO retrieveActivity( int id) {
-        return this.convertA(fitRepository.listFitActivity(id));
+    public FitActivityDTO retrieveActivity( int id, int userId) {
+        return this.convertA(fitRepository.listFitActivity(id, userId));
     }
 
     public void saveGpxFile(InputStream inputStream) throws IOException {
@@ -249,13 +252,11 @@ public class ActivityService {
     public static double haversine(double lat1, double lon1, double lat2, double lon2) {
         final double R = 6371; // Earth's radius in km
 
-        // Convert degrees to radians
         lat1 = Math.toRadians(lat1);
         lon1 = Math.toRadians(lon1);
         lat2 = Math.toRadians(lat2);
         lon2 = Math.toRadians(lon2);
 
-        // Differences in coordinates
         double dlat = lat2 - lat1;
         double dlon = lon2 - lon1;
 
@@ -276,12 +277,8 @@ public class ActivityService {
             return List.of();
         }
         double lastKmMark = trackPoints.get(0).getDistance();
-
-
         long lastTimeMark = trackPoints.get(0).getTimestamp();
-
         float lastElevation = trackPoints.get(0).getAltitude();
-
         float accumulatedElevationGain = 0.F;
         float accumulatedElevationLoss = 0.F;
         float averageHeartrate = trackPoints.get(0).getHeartRate();
@@ -290,9 +287,9 @@ public class ActivityService {
         long countInLap = 0;
 
 
+        PaceDetail paceDetail = new PaceDetail();
         for(var tp : trackPoints) {
             if(tp.getDistance() - lastKmMark >= 1000.) {
-                PaceDetail paceDetail = new PaceDetail();
                 long interval = tp.getTimestamp() - lastTimeMark;
                 paceDetail.setMinutes((int) (interval / 60));
                 paceDetail.setSeconds((int) (interval % 60));
@@ -302,6 +299,7 @@ public class ActivityService {
                 paceDetail.setMaxHeartbeat(maxHeartrate);
                 paceDetail.setAverageHeartbeat(averageHeartrate);
                 result.add(paceDetail);
+                paceDetail = new PaceDetail();
                 lastTimeMark = tp.getTimestamp();
                 lastKmMark = tp.getDistance();
                 accumulatedElevationGain = 0.F;
@@ -339,6 +337,18 @@ public class ActivityService {
 
     @Transactional
     public List<PaceDetail> getLaps(int id) {
-        return calculatePace(fitRepository.listFitActivity(id).getFitUnitList());
+        return calculatePace(fitRepository.listFitActivity(id, 1).getFitUnitList());
+    }
+
+    public List<FitActivityDTO> listActivities() {
+        return convertA(fitRepository.listFitActivities());
+    }
+
+    public List<FitActivityDTO> listActivities(int userId) {
+        return convertA(fitRepository.listFitActivities(userId));
+    }
+
+    public Map<Pair<Double, Double>, Long> loadHeatMap(UserData userData) {
+        return fitRepository.loadHeatMap(userData);
     }
 }

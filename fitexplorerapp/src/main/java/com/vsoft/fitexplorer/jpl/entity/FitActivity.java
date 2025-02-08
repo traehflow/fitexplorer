@@ -1,6 +1,5 @@
 package com.vsoft.fitexplorer.jpl.entity;
 
-import com.garmin.fit.DateTime;
 import jakarta.persistence.*;
 import lombok.*;
 

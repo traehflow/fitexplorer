@@ -57,7 +57,7 @@ public class SyncService {
             start += count;
         } while (current.size() == count);
 
-        Set<String> persistedIds = fitRepository.listFitActivitiesIDs();
+        Set<String> persistedIds = fitRepository.listFitActivitiesIDs(1);
         persistedIds.stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
 
         map.values().stream().forEach(x -> {

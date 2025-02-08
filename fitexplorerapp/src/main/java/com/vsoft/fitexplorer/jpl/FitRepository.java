@@ -159,9 +159,27 @@ public class FitRepository {
     public List<FitActivity> listFitActivities() {
         TypedQuery<FitActivity> query = entityManager.createQuery(
                 "SELECT e FROM FitActivity e order by e.startTime", FitActivity.class
-    );
+        );
 
+        var result = query.getResultList();
+        if(result.isEmpty()) {
+            return null;
+        } else {
+            return query.getResultList();
+        }
+    }
 
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
+    @Transactional
+    public List<FitActivity> listFitActivities(int userId) {
+        TypedQuery<FitActivity> query = entityManager.createQuery(
+                """
+                       SELECT e FROM FitActivity e 
+                       WHERE e.userData.id = :userId 
+                       ORDER BY e.startTime
+                   """, FitActivity.class
+        );
+        query.setParameter("userId", userId);
 
         var result = query.getResultList();
         if(result.isEmpty()) {
@@ -178,8 +196,6 @@ public class FitRepository {
                 "SELECT e.activityId FROM FitActivity e order by e.id", String.class
         );
 
-
-
         var result = query.getResultList();
         if(result.isEmpty()) {
             return null;
@@ -190,13 +206,34 @@ public class FitRepository {
 
     @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @Transactional
-    public FitActivity listFitActivity(int id) {
+    public Set<String> listFitActivitiesIDs(int userId) {
+        TypedQuery<String> query = entityManager.createQuery(
+                """
+                   SELECT e.activityId
+                   FROM FitActivity e
+                   WHERE e.userData.id = :userId
+                   ORDER by e.id
+                  """, String.class
+        );
+        query.setParameter("userId", userId);
+        var result = query.getResultList();
+        if(result.isEmpty()) {
+            return null;
+        } else {
+            return Set.copyOf(query.getResultList());
+        }
+    }
+
+
+    @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
+    @Transactional
+    public FitActivity listFitActivity(int id, int userId) {
         TypedQuery<FitActivity> query = entityManager.createQuery(
-                "SELECT e FROM FitActivity e where e.id = :id", FitActivity.class
+                "SELECT e FROM FitActivity e where e.id = :id and e.userData.id = :userId", FitActivity.class
         );
 
         query.setParameter("id", id);
-
+        query.setParameter("userId", userId);
 
         var result = query.getResultList();
         if(result.isEmpty()) {

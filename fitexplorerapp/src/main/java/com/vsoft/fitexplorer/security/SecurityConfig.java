@@ -88,7 +88,7 @@ public class SecurityConfig {
             userProfile.setAdmin(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.ADMIN)));
             userProfile.setMerchant(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.TRAINEE)));
         }
-
+        userProfile.setUserId(1);
         userProfile.setUserName(principal.getName());
         return userProfile;
     }
