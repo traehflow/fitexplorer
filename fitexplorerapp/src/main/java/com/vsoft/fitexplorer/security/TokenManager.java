@@ -1,5 +1,6 @@
 package com.vsoft.fitexplorer.security;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -16,23 +17,26 @@ public class TokenManager implements Serializable {
     /**
      *
      */
+    @Serial
     private static final long serialVersionUID = 7008375124389347049L;
-    public static final long TOKEN_VALIDITY = 10 * 60 * 60; @Value("${secret}")
+    public static final long TOKEN_VALIDITY = 10 * 60 * 60;
+    public static final String USER_ID = "user_id";
+    @Value("${secret}")
     private String jwtSecret;
-    public String generateJwtToken(UserData userDetails) {
+    public String generateJwtToken(UserData userData) {
         Map<String, Object> claims = Map.of("additional_role", "role",
-                "user_id", userDetails.getId());
+                USER_ID, userData.getId());
         long current= System.currentTimeMillis();
-        return Jwts.builder().setClaims(claims).setSubject(userDetails.getUsername())
+        return Jwts.builder().setClaims(claims).setSubject(userData.getUsername())
                 .setIssuedAt(new Date(current))
-                .setSubject(userDetails.getUsername())
+                .setSubject(userData.getUsername())
                 .setExpiration(new Date(current + TOKEN_VALIDITY * 1000))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
     }
-    public Boolean validateJwtToken(String token, String user) {
+    public boolean validateJwtToken(String token, String user) {
         String username = getUsernameFromToken(token);
         Claims claims = Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(token).getBody();
-        Boolean isTokenExpired = claims.getExpiration().before(new Date());
+        boolean isTokenExpired = claims.getExpiration().before(new Date());
         return (username.equals(user) && !isTokenExpired);
     }
     public String getUsernameFromToken(String token) {
@@ -42,7 +46,7 @@ public class TokenManager implements Serializable {
 
     public int getUserIdFromToken(String token) {
         final Claims claims = Jwts.parser().setSigningKey(jwtSecret).build().parseClaimsJws(token).getBody();
-        return (Integer)claims.get("user_id");
+        return (Integer)claims.get(USER_ID);
     }
 
 
