@@ -26,7 +26,9 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -276,7 +278,11 @@ public class ActivityService {
         if(ListUtils.emptyIfNull(trackPoints).isEmpty()) {
             return List.of();
         }
-        double lastKmMark = trackPoints.get(0).getDistance();
+        if(trackPoints.get(0).getDistance() == null) {
+            logger.error("Lap has missing distance marks. Cannot calculate laps");
+            throw new HttpClientErrorException(HttpStatus.BAD_REQUEST, "Missing distance marks. Cannot calculate laps.");
+        }
+        float lastKmMark = trackPoints.get(0).getDistance();
         long lastTimeMark = trackPoints.get(0).getTimestamp();
         float lastElevation = trackPoints.get(0).getAltitude();
         float accumulatedElevationGain = 0.F;
@@ -336,8 +342,8 @@ public class ActivityService {
     }
 
     @Transactional
-    public List<PaceDetail> getLaps(int id) {
-        return calculatePace(fitRepository.listFitActivity(id, 1).getFitUnitList());
+    public List<PaceDetail> getLaps(int userId, int id) {
+        return calculatePace(fitRepository.listFitActivity(id, userId).getFitUnitList());
     }
 
     public List<FitActivityDTO> listActivities() {

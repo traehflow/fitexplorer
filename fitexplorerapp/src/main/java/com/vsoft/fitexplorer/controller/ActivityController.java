@@ -53,14 +53,14 @@ public class ActivityController {
     }
 
     @GetMapping("/laps")
-    public List<PaceDetail> laps() {
-        return  activityService.getLaps(userProfile.getUserId());
+    public List<PaceDetail> laps(int id) {
+        return  activityService.getLaps(userProfile.getUserId(), id);
     }
 
   //  @Secured(Roles.ROLE_PREFIX + Roles.TRAINEE)
     @GetMapping("/val")
     @Transactional
-    public FitActivityDTO showActivity( int id) {
+    public FitActivityDTO showActivity(int id) {
         return activityService.retrieveActivity(id, userProfile.getUserId());
     }
 
