@@ -9,5 +9,5 @@ public class UserProfile {
     String userName;
     int userId;
     boolean isAdmin;
-    boolean isMerchant;
+    boolean isTrainee;
 }

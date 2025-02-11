@@ -94,7 +94,7 @@ public class SecurityConfig {
         var principal = request.getUserPrincipal();
         if (principal instanceof UsernamePasswordAuthenticationToken token) {
             userProfile.setAdmin(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.ADMIN)));
-            userProfile.setMerchant(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.TRAINEE)));
+            userProfile.setTrainee(token.getAuthorities().stream().anyMatch(x -> x.getAuthority().equals(Roles.ROLE_PREFIX + Roles.TRAINEE)));
         }
         String token = tokenManager.getTokenFromRequest(request);
         if(StringUtils.isEmpty(token)) {
