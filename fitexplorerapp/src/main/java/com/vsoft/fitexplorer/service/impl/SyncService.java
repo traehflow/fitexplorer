@@ -92,7 +92,7 @@ public class SyncService {
         headers.set("x-lang", "en-US");
         headers.set("x-requested-with", "XMLHttpRequest");
         headers.set("referer", "https://connect.garmin.com/modern/activities'");
-        headers.set("cookie", "JWT_FGP=" + jwtToken.getJwtFgt());
+        headers.set("cookie", "_ga_1K2WNZ9N3T=GS1.1.1705145373.2.1.1705145375.0.0.0; utag_main_v_id_0188629cdbfb0067999f4b43b67005065001b05d0093c=undefined; utag_main__sn_187=undefined; utag_main_v_id=0193c5aba5c600ae0368497b79d805065001d05d0093c; GarminUserPrefs=en-US; SERVERID=cv1xpa-matomo01; CONSENTMGR=c1:1%7Cc2:1%7Cc3:1%7Cc4:1%7Cc5:1%7Cc6:1%7Cc7:1%7Cc8:1%7Cc9:1%7Cc10:1%7Cc11:1%7Cc12:1%7Cc13:1%7Cc14:1%7Cc15:1%7Cts:1739391083749%7Cconsent:true; utag_main__sn=209; _gid=GA1.2.138886237.1739391088; _ga=GA1.1.1945401928.1685281673; GARMIN-SSO=1; GARMIN-SSO-CUST-GUID=d99271f7-70a3-4862-bc8e-e4e48450d2ff;JWT_FGP=" + jwtToken.getJwtFgt());
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         RestTemplate restTemplate = new RestTemplate();

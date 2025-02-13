@@ -64,12 +64,7 @@ public class SecurityConfig {
                                 .requestMatchers("/cal.html").hasAnyRole(new String[]{Roles.TRAINEE, Roles.ADMIN})
                                 .requestMatchers("/error").hasAnyRole(new String[]{Roles.TRAINEE, Roles.ADMIN})
                                 .requestMatchers("/favicon.ico").hasAnyRole(new String[]{Roles.TRAINEE, Roles.ADMIN})
-
                                 .requestMatchers("/**").hasAnyRole(new String[]{Roles.TRAINEE, Roles.ADMIN})
-
-
-
-
                 )
                 .formLogin( x -> {
                     x.defaultSuccessUrl("/swagger-ui.html", true);

@@ -1,8 +1,4 @@
 DROP VIEW IF EXISTS public.heatmap;
-CREATE VIEW public.heatmap AS
-SELECT floor(f.latitude * 1000::double precision) / 1000::double precision AS latitude,
-       floor(f.longitude * 1000::double precision) / 1000::double precision AS longitude,
-       count(*) AS count
-FROM fitunit f
-WHERE f.latitude IS NOT NULL AND f.longitude IS NOT NULL
-GROUP BY (floor(f.latitude * 1000::double precision)), (floor(f.longitude * 1000::double precision));
+CREATE VIEW public.heatmap AS SELECT floor(f.latitude * 1000::double precision) / 1000::double precision AS latitude, floor(f.longitude * 1000::double precision) / 1000::double precision AS longitude, count(*) AS count FROM fitunit f WHERE f.latitude IS NOT NULL AND f.longitude IS NOT NULL GROUP BY (floor(f.latitude * 1000::double precision)), (floor(f.longitude * 1000::double precision));
+insert into userdata(id, username , "password" , "role" ) values (nextval('userdata_id_seq'), 'wolfheart@mail.com', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', array['TRAINEE']);
+insert into userdata(id, username , "password" , "role" ) values (nextval('userdata_id_seq'), 'johnwill@merchant.com', '$2a$10$slYQmyNdGzTn7ZLBXBChFOC9f6kFjAqPhccnP6DxlWXx2lPk1C3G6', array['TRAINEE']);

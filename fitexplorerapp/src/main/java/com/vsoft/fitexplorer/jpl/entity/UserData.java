@@ -17,7 +17,7 @@ import java.util.Set;
 public class UserData {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "userdata_id_seq")
-    @SequenceGenerator(name = "userdata_id_seq", sequenceName = "userdata_id_seq", allocationSize = 500, initialValue = 100000000)
+    @SequenceGenerator(name = "userdata_id_seq", sequenceName = "userdata_id_seq", allocationSize = 1, initialValue = 1)
     int id;
     private String username;
     private String password;

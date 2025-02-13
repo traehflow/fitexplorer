@@ -18,7 +18,7 @@ public class FitActivity {
     @Id
     //@GeneratedValue(strategy = GenerationType.IDENTITY)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "fitactivity_id_seq")
-    @SequenceGenerator(name = "fitactivity_id_seq", sequenceName = "fitactivity_id_seq", allocationSize = 500, initialValue = 100000000)
+    @SequenceGenerator(name = "fitactivity_id_seq", sequenceName = "fitactivity_id_seq", allocationSize = 1, initialValue = 1)
 
     int id;
     long startTime;
