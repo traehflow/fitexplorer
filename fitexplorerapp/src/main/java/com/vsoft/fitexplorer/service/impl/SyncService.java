@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vsoft.fitexplorer.dto.GarminAuthDetails;
 import com.vsoft.fitexplorer.jpl.FitRepository;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -39,12 +40,12 @@ public class SyncService {
     ActivityService activityService;
 
     @Async
-    public CompletableFuture<Map<String, GarminActivity>> asSync(GarminAuthDetails garminAuthDetails) throws JsonProcessingException {
-        var result = sync(garminAuthDetails);
+    public CompletableFuture<Map<String, GarminActivity>> asSync(GarminAuthDetails garminAuthDetails, int userId) throws JsonProcessingException {
+        var result = sync(garminAuthDetails, userId);
         return new AsyncResult<>(result).completable();
     }
 
-    public Map<String, GarminActivity> sync(GarminAuthDetails jwtToken) throws JsonProcessingException {
+    public Map<String, GarminActivity> sync(GarminAuthDetails garminAuthDetails, int userId) throws JsonProcessingException {
         List<GarminActivity> garminActivities = new ArrayList<GarminActivity>();
         int start = 0;
         int count = 1000;
@@ -52,17 +53,17 @@ public class SyncService {
         Map<String, GarminActivity> map = new HashMap<>();
         List<GarminActivity> current;
         do {
-            current = extractGarminActivities(jwtToken, count, start);
+            current = extractGarminActivities(garminAuthDetails, count, start);
             map.putAll(current.stream().collect(Collectors.toMap(GarminActivity::getActivityId, x -> x, (x, y) -> x)));
             start += count;
         } while (current.size() == count);
 
-        Set<String> persistedIds = fitRepository.listFitActivitiesIDs(1);
-        persistedIds.stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
+        Set<String> persistedIds = fitRepository.listFitActivitiesIDs(userId);
+        SetUtils.emptyIfNull(persistedIds).stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
 
         map.values().stream().forEach(x -> {
             try {
-                downloadActivity(jwtToken, x.getActivityId(), x.getActivityName());
+                downloadActivity(garminAuthDetails, x.getActivityId(), x.getActivityName());
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

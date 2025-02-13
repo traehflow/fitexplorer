@@ -71,13 +71,13 @@ public class ActivityController {
 
     @PostMapping("/sync")
     public ResponseEntity<String> sync(GarminAuthDetails garminAuthDetails) throws JsonProcessingException {
-        syncTask(garminAuthDetails);
+        syncTask(garminAuthDetails, userProfile);
         return ResponseEntity.accepted().body("Long task has started processing in the background.");
     }
 
     @PostMapping("/syncMapMyRun")
     public ResponseEntity<String> syncMapMyRun(MapMyRunAuthDetail mapMyRunAuthDetail) throws JsonProcessingException {
-        syncTask(mapMyRunAuthDetail);
+        syncTask(mapMyRunAuthDetail, userProfile);
         return ResponseEntity.accepted().body("Long task has started processing in the background.");
     }
 
@@ -113,13 +113,13 @@ public class ActivityController {
     }
 
     @Async("threadPoolTaskExecutor")
-    public void syncTask(GarminAuthDetails jwtToken) throws JsonProcessingException {
-        syncService.sync(jwtToken);
+    public void syncTask(GarminAuthDetails garminAuthDetails, UserProfile userProfile) throws JsonProcessingException {
+        syncService.sync(garminAuthDetails, userProfile.getUserId());
     }
 
 
     @Async("threadPoolMapMyRunTaskExecutor")
-    public void syncTask(MapMyRunAuthDetail mapMyRunAuthDetail) throws JsonProcessingException {
-        mapMyRunSyncService.sync(mapMyRunAuthDetail);
+    public void syncTask(MapMyRunAuthDetail mapMyRunAuthDetail, UserProfile userProfile) throws JsonProcessingException {
+        mapMyRunSyncService.sync(mapMyRunAuthDetail, userProfile.getUserId());
     }
 }

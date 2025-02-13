@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.vsoft.fitexplorer.dto.MapMyRunAuthDetail;
 import com.vsoft.fitexplorer.jpl.FitRepository;
+import org.apache.commons.collections4.SetUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
@@ -44,12 +45,12 @@ public class MapMyRunSyncService {
     ActivityService activityService;
 
     @Async
-    public CompletableFuture<Map<String, MapMyRunActivity>> asSync(MapMyRunAuthDetail garminAuthDetails) throws JsonProcessingException {
-        var result = sync(garminAuthDetails);
+    public CompletableFuture<Map<String, MapMyRunActivity>> asSync(MapMyRunAuthDetail garminAuthDetails, int userId) throws JsonProcessingException {
+        var result = sync(garminAuthDetails, userId);
         return new AsyncResult<>(result).completable();
     }
 
-    public Map<String, MapMyRunActivity> sync(MapMyRunAuthDetail mapMyRunAuthDetail) throws JsonProcessingException {
+    public Map<String, MapMyRunActivity> sync(MapMyRunAuthDetail mapMyRunAuthDetail, int userId) throws JsonProcessingException {
         List<MapMyRunActivity> garminActivities = new ArrayList<>();
         int start = 0;
         int count = 1000;
@@ -62,8 +63,8 @@ public class MapMyRunSyncService {
             start += count;
         //} while (current.size() == count);
 
-        Set<String> persistedIds = fitRepository.listFitActivitiesIDs(1);
-        persistedIds.stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
+        Set<String> persistedIds = fitRepository.listFitActivitiesIDs(userId);
+        SetUtils.emptyIfNull(persistedIds).stream().map(String::valueOf).collect(Collectors.toSet()).forEach(map::remove);
 
         map.values().stream().forEach(x -> {
             try {
