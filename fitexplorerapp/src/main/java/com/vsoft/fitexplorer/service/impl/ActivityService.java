@@ -287,9 +287,13 @@ public class ActivityService {
         float lastElevation = trackPoints.get(0).getAltitude();
         float accumulatedElevationGain = 0.F;
         float accumulatedElevationLoss = 0.F;
-        float averageHeartrate = trackPoints.get(0).getHeartRate();
-        float maxHeartrate = trackPoints.get(0).getHeartRate();
-        float minHeartrate = trackPoints.get(0).getHeartRate();
+
+
+        Short averageHeartrate = trackPoints.get(0).getHeartRate();
+        Short maxHeartrate = trackPoints.get(0).getHeartRate();
+        Short minHeartrate = trackPoints.get(0).getHeartRate();
+
+
         long countInLap = 0;
 
 
@@ -318,15 +322,34 @@ public class ActivityService {
             } else {
                 accumulatedElevationLoss -= lastElevation - tp.getAltitude();
             }
-            minHeartrate = Math.min(minHeartrate, tp.getHeartRate());
-            maxHeartrate = Math.max(maxHeartrate, tp.getHeartRate());
-            averageHeartrate += (tp.getHeartRate() - averageHeartrate) / (countInLap + 1);
+            if(tp.getHeartRate() != null) {
+                if(minHeartrate != null)  {
+                    minHeartrate = min(minHeartrate, tp.getHeartRate());
+                    maxHeartrate = max(maxHeartrate, tp.getHeartRate());
+                    averageHeartrate = (short)(averageHeartrate + ((tp.getHeartRate() - averageHeartrate) / (countInLap + 1)));
+                } else {
+                    minHeartrate = tp.getHeartRate();
+                    maxHeartrate = tp.getHeartRate();
+                    averageHeartrate = tp.getHeartRate();
+                }
+            } else {
+                logger.error("Missing heart rate data for: " + tp.getTimestamp());
+            }
             lastElevation = tp.getAltitude();
             ++countInLap;
 
         }
         return result;
     }
+
+    public static short min(short a, short b) {
+        return a <= b ? a : b;
+    }
+
+    public static short max(short a, short b) {
+        return a >= b ? a : b;
+    }
+
 
     public static List<FitActivityDTO> convertA(List<FitActivity> fitActivities) {
         return  fitActivities.stream().map(x -> new FitActivityDTO(x.getId(), x.getStartTime(), x.getOriginalFile(), List.of(), x.getFitActivityType(), x.getActivityId(), x.getActivityName(), x.getDescription(), x.getStartTimeLocal(), x.getDistance(), x.getDuration(), x.getElapsedDuration(), x.getMovingDuration(), x.getElevationGain(), x.getElevationLoss(), x.getAverageSpeed(), x.getMaxSpeed()))

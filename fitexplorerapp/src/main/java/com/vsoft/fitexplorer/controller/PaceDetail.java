@@ -8,7 +8,7 @@ public class PaceDetail {
     int seconds;
     float elevationGain;
     float elevationLoss;
-    float averageHeartbeat;
-    float maxHeartbeat;
-    float minHeartbeat;
+    Short averageHeartbeat;
+    Short maxHeartbeat;
+    Short minHeartbeat;
 }
