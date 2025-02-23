@@ -66,9 +66,25 @@ dependencies {
 	testImplementation 'org.junit.jupiter:junit-jupiter:5.7.0'
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
 	testImplementation 'org.junit.vintage:junit-vintage-engine'
+	// TestContainers Core
+	testImplementation 'org.testcontainers:testcontainers:1.19.3'
+
+	// JUnit 5 Integration for TestContainers
+	testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+
+	// PostgreSQL TestContainers Module
+	testImplementation 'org.testcontainers:postgresql:1.19.3'
+
+	// JUnit 5
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.2'
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.2'
+
+	// PostgreSQL JDBC Driver
+	implementation 'org.postgresql:postgresql:42.7.2'
 	testImplementation 'org.hamcrest:hamcrest-core'
 	implementation 'io.jsonwebtoken:jjwt:0.12.3'
 	implementation 'org.springframework.security:spring-security-jwt:1.1.1.RELEASE'
+	implementation('com.hazelcast:hazelcast:5.3.8')
 
 
 }
@@ -92,4 +108,8 @@ task runAnotherMain(type: JavaExec) {
 	classpath = sourceSets.main.runtimeClasspath
 
 	args 'home/vladimir/Downloads/13123731108_ACTIVITY.fit'
+}
+
+springBoot {
+	mainClass = 'com.vsoft.fitexplorer.ProbaApplication'
 }
