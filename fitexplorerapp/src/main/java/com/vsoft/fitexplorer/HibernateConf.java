@@ -36,7 +36,7 @@ public class HibernateConf {
             String dbhost = StringUtils.defaultIfEmpty(System.getenv("DB_SERV"), "localhost");
         BasicDataSource dataSource = new BasicDataSource();
         dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://" + dbhost + ":5432/fitexplorer");
+        dataSource.setUrl("jdbc:postgresql://" + dbhost + ":5432/fitexplorer1");
         dataSource.setUsername("postgres");
         dataSource.setPassword("123");
 

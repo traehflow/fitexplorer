@@ -287,29 +287,28 @@ public class ActivityService {
         float lastElevation = trackPoints.get(0).getAltitude();
         float accumulatedElevationGain = 0.F;
         float accumulatedElevationLoss = 0.F;
+        float trackDistance = 0.F;
+        long interval = 0;
 
 
         Short averageHeartrate = trackPoints.get(0).getHeartRate();
         Short maxHeartrate = trackPoints.get(0).getHeartRate();
         Short minHeartrate = trackPoints.get(0).getHeartRate();
-
-
         long countInLap = 0;
 
-
-        PaceDetail paceDetail = new PaceDetail();
         for(var tp : trackPoints) {
-            if(tp.getDistance() - lastKmMark >= 1000.) {
-                long interval = tp.getTimestamp() - lastTimeMark;
-                paceDetail.setMinutes((int) (interval / 60));
-                paceDetail.setSeconds((int) (interval % 60));
-                paceDetail.setElevationGain(accumulatedElevationGain);
-                paceDetail.setElevationLoss(accumulatedElevationLoss);
-                paceDetail.setMinHeartbeat(minHeartrate);
-                paceDetail.setMaxHeartbeat(maxHeartrate);
-                paceDetail.setAverageHeartbeat(averageHeartrate);
-                result.add(paceDetail);
-                paceDetail = new PaceDetail();
+            trackDistance = tp.getDistance() - lastKmMark;
+            if(trackDistance >= 1000.) {
+                interval = tp.getTimestamp() - lastTimeMark;
+                boolean add = result.add(getPaceDetail(
+                        interval,
+                        accumulatedElevationGain,
+                        accumulatedElevationLoss,
+                        minHeartrate,
+                        maxHeartrate,
+                        averageHeartrate,
+                        trackDistance
+                ));
                 lastTimeMark = tp.getTimestamp();
                 lastKmMark = tp.getDistance();
                 accumulatedElevationGain = 0.F;
@@ -337,9 +336,33 @@ public class ActivityService {
             }
             lastElevation = tp.getAltitude();
             ++countInLap;
-
+        }
+        if(trackDistance >= 0.01) {
+            getPaceDetail(
+                    interval,
+                    accumulatedElevationGain,
+                    accumulatedElevationLoss,
+                    minHeartrate,
+                    maxHeartrate,
+                    averageHeartrate,
+                    trackDistance
+            );
         }
         return result;
+    }
+
+    private static PaceDetail getPaceDetail(long interval, float accumulatedElevationGain, float accumulatedElevationLoss, Short minHeartrate, Short maxHeartrate, Short averageHeartrate,
+                                            float distance) {
+        PaceDetail paceDetail = new PaceDetail();
+        paceDetail.setMinutes((int) (interval / 60));
+        paceDetail.setSeconds((int) (interval % 60));
+        paceDetail.setElevationGain(accumulatedElevationGain);
+        paceDetail.setElevationLoss(accumulatedElevationLoss);
+        paceDetail.setMinHeartbeat(minHeartrate);
+        paceDetail.setMaxHeartbeat(maxHeartrate);
+        paceDetail.setAverageHeartbeat(averageHeartrate);
+        paceDetail.setDistance(distance);
+        return paceDetail;
     }
 
     public static short min(short a, short b) {

@@ -9,13 +9,13 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 @SpringBootApplication(exclude = {DataSourceAutoConfiguration.class,
 		HibernateJpaAutoConfiguration.class})
-public class ProbaApplication {
+public class FitApplication {
 
 
 
 
 	public static void main(String[] args) {
-		SpringApplication.run(ProbaApplication.class, args);
+		SpringApplication.run(FitApplication.class, args);
 	}
 
 }
